@@ -23,4 +23,6 @@ _testmain.go
 *.exe
 *.test
 *.prof
-
+.idea
+go.sum
+model.db
