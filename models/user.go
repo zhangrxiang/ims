@@ -12,6 +12,21 @@ type UserModel struct {
 }
 
 func (u *UserModel) Find() (*UserModel, error) {
+
+	db := utils.GetDBInstance().DB
+	model := db.Where("username = ? AND password >= ?", u.Username, u.Password).Find(u)
+	return model.Value.(*UserModel), model.Error
+
+}
+
+func (u *UserModel) All() (*[]UserModel, error) {
+	db := utils.GetDBInstance().DB
+	var users []UserModel
+	model := db.Find(&users)
+	return model.Value.(*[]UserModel), model.Error
+}
+
+func (u *UserModel) FindByID() (*UserModel, error) {
 	db := utils.GetDBInstance().DB
 
 	db = db.First(u, u.ID)

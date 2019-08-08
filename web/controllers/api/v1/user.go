@@ -3,35 +3,51 @@ package v1
 import (
 	"github.com/kataras/iris"
 	"simple-ims/models"
-	"simple-ims/services"
+	"time"
 )
 
-type UserController struct {
-	service services.UserService
-}
+//用户列表
+func UserList(ctx iris.Context) {
 
-func (u *UserController) GetBy(id int) (*models.UserModel, error) {
-	return u.service.Find(int(id))
-}
-
-func (u *UserController) Login(ctx iris.Context) {
-	username := ctx.URLParam("username")
-	password := ctx.URLParam("password")
-	model, err := u.service.Add(models.UserModel{
-		Username: username,
-		Password: password,
-	})
-
+	users, err := (&models.UserModel{}).All()
 	if err != nil {
-		_, _ = ctx.JSON(iris.Map{
-			"message": "注册失败",
-			"status":  false,
-		})
+		response(ctx, false, "无用户:"+err.Error(), nil)
 		return
 	}
-	_, _ = ctx.JSON(iris.Map{
-		"message": "注册成功",
-		"status":  true,
-		"data":    model,
+
+	response(ctx, true, "", iris.Map{
+		"users":     users,
+		"timestamp": time.Now().Unix(),
 	})
+	return
+
+}
+
+//用户登陆
+func UserLogin(ctx iris.Context) {
+
+	username := ctx.URLParamDefault("username", "")
+	password := ctx.URLParamDefault("password", "")
+
+	if username == "" || password == "" {
+		response(ctx, false, "用户名或密码不能为空", nil)
+		return
+	}
+
+	user := models.UserModel{
+		Username: username,
+		Password: password,
+	}
+
+	model, err := user.Find()
+
+	if err != nil {
+		response(ctx, false, "无此用户:"+err.Error(), nil)
+		return
+	}
+	response(ctx, true, "", iris.Map{
+		"user":      model,
+		"timestamp": time.Now().Unix(),
+	})
+	return
 }
