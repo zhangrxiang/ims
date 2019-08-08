@@ -18,6 +18,8 @@ var (
 	w       *Web
 )
 
+const v1Api = "/api/v1"
+
 func NewOnceWeb() *Web {
 	webOnce.Do(func() {
 		w := &Web{
@@ -41,8 +43,17 @@ func (web *Web) Init() {
 		_, _ = context.WriteString("PONG")
 	})
 
-	web.app.Get("/api/v1/user/login", v1.UserLogin)
-	web.app.Get("/api/v1/user/lists", v1.UserList)
+	user := web.app.Party(v1Api + "/user")
+	{
+		user.Get("/login", v1.UserLogin)
+		user.Get("/lists", v1.UserLists)
+	}
+
+	resource := web.app.Party(v1Api + "/resource")
+	{
+		resource.Post("/add", v1.ResourceAdd)
+		resource.Get("/lists", v1.ResourceLists)
+	}
 
 	web.app.OnErrorCode(iris.StatusNotFound, func(ctx iris.Context) {
 		_, _ = ctx.JSON(iris.Map{

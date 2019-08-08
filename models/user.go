@@ -4,11 +4,11 @@ import "simple-ims/utils"
 
 type UserModel struct {
 	ID       int    `json:"id",gorm:"primary_key;AUTO_INCREMENT"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username",gorm:"not null;unique;type:varchar(30)"`
+	Password string `json:"password",gorm:"not null;type:varchar(20)"`
 	Role     string `json:"role"`
-	Phone    string `json:"phone"`
-	Mail     string `json:"mail"`
+	Phone    string `json:"phone",gorm:"not null"`
+	Mail     string `json:"mail",gorm:"not null"`
 }
 
 func (u *UserModel) Find() (*UserModel, error) {

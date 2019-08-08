@@ -7,7 +7,7 @@ import (
 )
 
 //用户列表
-func UserList(ctx iris.Context) {
+func UserLists(ctx iris.Context) {
 
 	users, err := (&models.UserModel{}).All()
 	if err != nil {
