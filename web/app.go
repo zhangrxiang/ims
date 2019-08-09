@@ -49,6 +49,15 @@ func (web *Web) Init() {
 		user.Get("/lists", v1.UserLists)
 	}
 
+	//资源分类
+	resourceType := web.app.Party(v1Api + "/resource-type")
+	{
+		resourceType.Post("/add", v1.ResourceTypeAdd)
+		resourceType.Get("/lists", v1.ResourceTypeLists)
+		resourceType.Post("/update", v1.ResourceTypeUpdate)
+		resourceType.Get("/delete", v1.ResourceTypeDelete)
+	}
+
 	resource := web.app.Party(v1Api + "/resource")
 	{
 		resource.Post("/add", v1.ResourceAdd)

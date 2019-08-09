@@ -13,6 +13,9 @@ type DB struct {
 	DB *gorm.DB
 }
 
+//唯一冲突
+const UniqueFailed = "UNIQUE constraint failed"
+
 func GetDBInstance() *DB {
 	dbOnce.Do(func() {
 		db = &DB{}

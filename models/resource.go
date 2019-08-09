@@ -31,7 +31,7 @@ func (rt ResourceType) String() string {
 
 type ResourceModel struct {
 	ID       int          `json:"id",gorm:"primary_key;AUTO_INCREMENT"`
-	Name     string       `json:"name",gorm:"not null"`
+	Name     string       `json:"name",gorm:"unique;not null"`
 	Type     ResourceType `json:"type",gorm:"not null"`
 	File     string       `json:"file"`
 	Version  string       `json:"version",gorm:"not null"`
