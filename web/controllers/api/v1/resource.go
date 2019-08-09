@@ -1,93 +1,117 @@
 package v1
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"github.com/kataras/iris"
 	"io"
-	"mime/multipart"
 	"os"
-	"path/filepath"
+	"path"
+	"simple-ims/models"
+	"strconv"
 	"time"
 )
 
 func ResourceAdd(ctx iris.Context) {
 
-	file, info, err := ctx.FormFile("file")
-	if err != nil {
-		response(ctx, false, "获取上传文件失败:"+err.Error(), nil)
+	name := ctx.FormValue("name")
+	_type := ctx.FormValue("type")
+	version := ctx.FormValue("version")
+	desc := ctx.FormValue("desc")
+
+	if name == "" || _type == "" {
+		response(ctx, false, "请输入资源名称,选择资源类型", nil)
 		return
 	}
 
-	defer file.Close()
-	name := info.Filename
+	t, err := strconv.Atoi(_type)
+	if err != nil {
+		response(ctx, false, "资源类型不存在:"+err.Error(), nil)
+		return
+	}
+	var resourceModel = &models.ResourceModel{
+		Name:    name,
+		Type:    t,
+		Version: version,
+		Desc:    desc,
+	}
 
-	dir := "./uploads/" + time.Now().Format("2006/01/")
-	_, err = os.Stat(dir)
-
-	if os.IsNotExist(err) {
-		err := os.MkdirAll(dir, 0666)
+	file, info, err := ctx.FormFile("file")
+	if file != nil {
 		if err != nil {
-			response(ctx, false, "创建文件夹失败:"+err.Error(), nil)
+			response(ctx, false, "获取上传文件失败:"+err.Error(), nil)
+			return
+		}
+
+		defer file.Close()
+
+		uploadDir := "uploads/" + time.Now().Format("2006/01/")
+		_, err = os.Stat(uploadDir)
+
+		if os.IsNotExist(err) {
+			err := os.MkdirAll(uploadDir, 0666)
+			if err != nil {
+				response(ctx, false, "创建文件夹失败:"+err.Error(), nil)
+				return
+			}
+		}
+
+		h := md5.New()
+		_, err = io.Copy(h, file)
+		if err != nil {
+			response(ctx, false, "读取文件失败:"+err.Error(), nil)
+			return
+		}
+
+		resourceModel.Hash = hex.EncodeToString(h.Sum(nil))
+		model, err := resourceModel.FindByHash(resourceModel.Hash)
+		if model != nil {
+			response(ctx, true, "保存文件成功:", iris.Map{
+				"resource": model,
+			})
+			return
+		}
+		resourceModel.File = info.Filename
+		resourceModel.Path = uploadDir + resourceModel.Hash + path.Ext(info.Filename)
+		resourceModel.CreateAt = time.Now()
+		out, err := os.OpenFile(resourceModel.Path, os.O_WRONLY|os.O_CREATE, 0666)
+
+		if err != nil {
+			response(ctx, false, "打开文件失败:"+err.Error(), nil)
+			return
+		}
+		defer out.Close()
+
+		_, err = io.Copy(out, file)
+		if err != nil {
+			response(ctx, false, "保存文件失败:"+err.Error(), nil)
 			return
 		}
 	}
-	out, err := os.OpenFile(dir+name, os.O_WRONLY|os.O_CREATE, 0666)
+
+	model, err := resourceModel.Insert()
 
 	if err != nil {
-		response(ctx, false, "打开文件失败:"+err.Error(), nil)
+		response(ctx, false, "添加资源失败:", nil)
 		return
 	}
-	defer out.Close()
-
-	_, err = io.Copy(out, file)
-	if err != nil {
-		response(ctx, false, "保存文件失败:"+err.Error(), nil)
-	}
-
-	response(ctx, false, "保存文件成功:", nil)
-
+	response(ctx, true, "保存文件成功:", iris.Map{
+		"resource": model,
+	})
 }
-func MultipartForm(ctx iris.Context) {
 
-	// Get the max post value size passed via iris.WithPostMaxMemory.
-	maxSize := ctx.Application().ConfigurationReadOnly().GetPostMaxMemory()
+func ResourceLists(ctx iris.Context) {
+	resourceModel := &models.ResourceModel{}
+	model, err := resourceModel.All()
 
-	err := ctx.Request().ParseMultipartForm(maxSize)
 	if err != nil {
-		ctx.StatusCode(iris.StatusInternalServerError)
-		_, _ = ctx.WriteString(err.Error())
+		response(ctx, false, "获取资源列表失败:"+err.Error(), nil)
 		return
 	}
 
-	form := ctx.Request().MultipartForm
-
-	files := form.File["files[]"]
-	failures := 0
-	for _, file := range files {
-		_, err = saveUploadedFile(file, "./uploads")
-		if err != nil {
-			failures++
-			_, _ = ctx.Writef("failed to upload: %s\n", file.Filename)
-		}
-	}
-	_, _ = ctx.Writef("%d files uploaded", len(files)-failures)
+	response(ctx, true, "", iris.Map{
+		"resources": model,
+		"timestamp": time.Now().Unix(),
+	})
+	return
 }
-
-func saveUploadedFile(fh *multipart.FileHeader, destDirectory string) (int64, error) {
-	src, err := fh.Open()
-	if err != nil {
-		return 0, err
-	}
-	defer src.Close()
-
-	out, err := os.OpenFile(filepath.Join(destDirectory, fh.Filename),
-		os.O_WRONLY|os.O_CREATE, os.FileMode(0666))
-
-	if err != nil {
-		return 0, err
-	}
-	defer out.Close()
-
-	return io.Copy(out, src)
-}
-
-func ResourceLists(ctx iris.Context) {}
