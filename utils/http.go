@@ -41,12 +41,20 @@ func Get(path string) []byte {
 func Post(path string, params interface{}) interface{} {
 
 	TUrl.Path = path
-	b, err := json.Marshal(params)
-	if err != nil {
-		log.Fatalln("ReadAll", err)
+	var b []byte
+	var err error
+	switch params.(type) {
+	case string:
+		b = []byte(params.(string))
+	default:
+		b, err = json.Marshal(params)
+		if err != nil {
+			log.Fatalln("ReadAll", err)
+		}
 	}
 	log.Println("\n" + string(b))
-	resp, err := client.Post(TUrl.String(), "www/x-www-form-urlencoded", bytes.NewReader(b))
+
+	resp, err := client.Post(TUrl.String(), "application/x-www-form-urlencoded", bytes.NewReader(b))
 	data := map[string]interface{}{}
 	if err != nil {
 		log.Fatalln("Get", err)

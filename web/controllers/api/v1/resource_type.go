@@ -53,7 +53,7 @@ func ResourceTypeDelete(ctx iris.Context) {
 	for _, v := range split {
 		i, err := strconv.Atoi(v)
 		if err != nil {
-			response(ctx, false, "ID非法:"+err.Error(), nil)
+			response(ctx, false, "资源分类ID非法:"+err.Error(), nil)
 			return
 		}
 		id = append(id, i)
@@ -86,7 +86,7 @@ func ResourceTypeUpdate(ctx iris.Context) {
 	id, err := strconv.Atoi(_id)
 
 	if err != nil {
-		response(ctx, false, "ID非法:"+err.Error(), nil)
+		response(ctx, false, "资源分类ID非法:"+err.Error(), nil)
 		return
 	}
 

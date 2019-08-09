@@ -2,16 +2,15 @@ package models
 
 import (
 	"errors"
-	"log"
 	"simple-ims/utils"
 	"strings"
 	"time"
 )
 
 type ResourceTypeModel struct {
-	ID       int       `gorm:"primary_key;AUTO_INCREMENT",json:"id"`
-	Name     string    `gorm:"unique;not null",json:"name"`
-	Desc     string    `gorm:"not null",json:"desc"`
+	ID       int       `gorm:"primary_key;AUTO_INCREMENT" json:"id"`
+	Name     string    `gorm:"unique;not null" json:"name"`
+	Desc     string    `json:"desc" gorm:"not null"`
 	CreateAt time.Time `json:"create_at"`
 }
 
@@ -42,6 +41,11 @@ func (r *ResourceTypeModel) Update() (*ResourceTypeModel, error) {
 
 	db := utils.GetDBInstance().DB
 	model := db.Model(r).Updates(r)
+
+	if model.Error != nil && strings.Contains(model.Error.Error(), utils.UniqueFailed) {
+		return model.Value.(*ResourceTypeModel), errors.New("资源分类已经存在")
+	}
+
 	if model.RowsAffected == 0 {
 		return nil, errors.New("无此资源分类")
 	}
@@ -54,12 +58,11 @@ func (r *ResourceTypeModel) Insert() (*ResourceTypeModel, error) {
 
 	db := utils.GetDBInstance().DB
 	db.AutoMigrate(r)
-	db = db.Create(r)
+	model := db.Create(r)
 
-	if db.Error != nil && strings.Contains(db.Error.Error(), utils.UniqueFailed) {
-		log.Println(db.Error.Error())
-		return db.Value.(*ResourceTypeModel), errors.New("资源分类已经存在")
+	if model.Error != nil && strings.Contains(model.Error.Error(), utils.UniqueFailed) {
+		return model.Value.(*ResourceTypeModel), errors.New("资源分类已经存在")
 	}
 
-	return db.Value.(*ResourceTypeModel), db.Error
+	return model.Value.(*ResourceTypeModel), model.Error
 }
