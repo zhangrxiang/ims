@@ -14,23 +14,26 @@ type UserModel struct {
 }
 
 func (u *UserModel) Find() (*UserModel, error) {
-	model := db.DB.Where("username = ? AND password = ?", u.Username, u.Password).Find(u)
-	return model.Value.(*UserModel), model.Error
+	user := &UserModel{}
+	model := db.DB.Where("username = ? AND password = ?", u.Username, u.Password).Find(user)
+	return user, model.Error
 }
 
 func (u *UserModel) FindByUsername() (*UserModel, error) {
-	model := db.DB.Where("username = ?", u.Username).Find(u)
-	return model.Value.(*UserModel), model.Error
+	user := &UserModel{}
+	model := db.DB.Where("username = ?", u.Username).Find(user)
+	return user, model.Error
 }
 
 func (u *UserModel) FindByID() (*UserModel, error) {
-	model := db.DB.First(u, u.ID)
-	return u, model.Error
+	user := &UserModel{}
+	model := db.DB.First(user, u.ID)
+	return user, model.Error
 }
 
 func (u *UserModel) All() (*[]UserModel, error) {
 	var users []UserModel
-	model := db.DB.Find(&users)
+	model := db.DB.Order("id DESC").Find(&users)
 	return model.Value.(*[]UserModel), model.Error
 }
 
@@ -52,6 +55,12 @@ func (u *UserModel) Delete(ids []int) (*UserModel, error) {
 }
 
 func (u *UserModel) Update() (*UserModel, error) {
+	userModel, err := u.FindByUsername()
+	if err != gorm.ErrRecordNotFound && userModel != nil {
+		if userModel.ID != u.ID {
+			return nil, RecordExists
+		}
+	}
 	model := db.DB.Model(u).Updates(u)
 	if model.RowsAffected == 0 {
 		return nil, NoRecordExists

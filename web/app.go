@@ -5,6 +5,7 @@ import (
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/logger"
 	"log"
+	"simple-ims/models"
 	"simple-ims/web/controllers/api/v1"
 	"sync"
 )
@@ -45,6 +46,7 @@ func (web *Web) Init() {
 		_, _ = context.WriteString("PONG")
 	})
 
+	models.GetDBInstance()
 	//用户
 	user := web.app.Party(v1Api + "/user")
 	{
