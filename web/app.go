@@ -79,13 +79,15 @@ func (web *Web) Init() {
 		})
 	})
 
-	err := web.app.Run(
-		iris.Addr("localhost:8081"),
-		iris.WithoutServerError(iris.ErrServerClosed),
-		iris.WithOptimizations,
-	)
+	go func() {
+		err := web.app.Run(
+			iris.Addr("localhost:8081"),
+			iris.WithoutServerError(iris.ErrServerClosed),
+			iris.WithOptimizations,
+		)
 
-	if err != nil {
-		log.Fatalln("app run error ", err)
-	}
+		if err != nil {
+			log.Fatalln("app run error ", err)
+		}
+	}()
 }
