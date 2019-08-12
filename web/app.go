@@ -5,7 +5,7 @@ import (
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/logger"
 	"log"
-	v1 "simple-ims/web/controllers/api/v1"
+	"simple-ims/web/controllers/api/v1"
 	"sync"
 )
 
@@ -35,14 +35,17 @@ func (web *Web) Init() {
 	web.app.Logger().SetLevel("debug")
 	web.app.Use(logger.New())
 	web.app.RegisterView(iris.HTML("./web/views", ".html"))
+	web.app.SPA(web.app.StaticHandler("./web/views", false, false))
 	web.app.Configure(iris.WithConfiguration(iris.Configuration{
 		Charset: "UTF-8",
 	}))
 
-	web.app.Get("/", func(context context.Context) {
+	//ping
+	web.app.Get("/ping", func(context context.Context) {
 		_, _ = context.WriteString("PONG")
 	})
 
+	//用户
 	user := web.app.Party(v1Api + "/user")
 	{
 		user.Get("/login", v1.UserLogin)
@@ -58,6 +61,7 @@ func (web *Web) Init() {
 		resourceType.Get("/delete", v1.ResourceTypeDelete)
 	}
 
+	//资源
 	resource := web.app.Party(v1Api + "/resource")
 	{
 		resource.Post("/add", v1.ResourceAdd)
