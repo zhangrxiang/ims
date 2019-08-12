@@ -2,7 +2,7 @@ package models
 
 import (
 	"errors"
-	"strings"
+	"github.com/jinzhu/gorm"
 	"time"
 )
 
@@ -15,21 +15,24 @@ type ResourceTypeModel struct {
 
 //查询所有
 func (r *ResourceTypeModel) All() (*[]ResourceTypeModel, error) {
-
-	db := GetDBInstance().DB
 	var resources []ResourceTypeModel
-	model := db.Order("id DESC").Find(&resources)
+	model := db.DB.Order("id DESC").Find(&resources)
 	return model.Value.(*[]ResourceTypeModel), model.Error
 
+}
+
+func (r *ResourceTypeModel) FindByResourceName() (*ResourceTypeModel, error) {
+	typeModel := &ResourceTypeModel{}
+	model := db.DB.Where("name = ?", r.Name).Find(typeModel)
+	return typeModel, model.Error
 }
 
 //根据ID删除
 func (r *ResourceTypeModel) DeleteByIds(ids []int) (*ResourceTypeModel, error) {
 
-	db := GetDBInstance().DB
-	model := db.Where(ids).Delete(r)
+	model := db.DB.Where(ids).Delete(r)
 	if model.RowsAffected == 0 {
-		return nil, errors.New("无此资源分类")
+		return nil, NoRecordExists
 	}
 	return model.Value.(*ResourceTypeModel), model.Error
 
@@ -38,29 +41,27 @@ func (r *ResourceTypeModel) DeleteByIds(ids []int) (*ResourceTypeModel, error) {
 //更新
 func (r *ResourceTypeModel) Update() (*ResourceTypeModel, error) {
 
-	db := GetDBInstance().DB
-	model := db.Model(r).Updates(r)
+	typeModel, err := r.FindByResourceName()
 
-	if model.Error != nil && strings.Contains(model.Error.Error(), UniqueFailed) {
-		return model.Value.(*ResourceTypeModel), errors.New("资源分类已经存在")
+	if err != gorm.ErrRecordNotFound && typeModel != nil {
+		if typeModel.ID != r.ID {
+			return nil, RecordExists
+		}
 	}
 
+	model := db.DB.Model(r).Updates(r)
 	if model.RowsAffected == 0 {
-		return nil, errors.New("无此资源分类")
+		return nil, NoRecordExists
 	}
 	return model.Value.(*ResourceTypeModel), model.Error
-
 }
 
 //添加
 func (r *ResourceTypeModel) Insert() (*ResourceTypeModel, error) {
-
-	db := GetDBInstance().DB
-	model := db.Create(r)
-
-	if model.Error != nil && strings.Contains(model.Error.Error(), UniqueFailed) {
+	_, err := r.FindByResourceName()
+	if err == gorm.ErrRecordNotFound {
+		model := db.DB.Create(r)
 		return model.Value.(*ResourceTypeModel), errors.New("资源分类已经存在")
 	}
-
-	return model.Value.(*ResourceTypeModel), model.Error
+	return nil, RecordExists
 }
