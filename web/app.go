@@ -34,8 +34,8 @@ func (web *Web) Init() {
 
 	web.app.Logger().SetLevel("debug")
 	web.app.Use(logger.New())
-	web.app.RegisterView(iris.HTML("./web/views", ".html"))
-	web.app.SPA(web.app.StaticHandler("./web/views", false, false))
+	web.app.RegisterView(iris.HTML("./www", ".html"))
+	web.app.SPA(web.app.StaticHandler("./www", false, false))
 	web.app.Configure(iris.WithConfiguration(iris.Configuration{
 		Charset: "UTF-8",
 	}))

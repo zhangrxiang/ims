@@ -113,7 +113,7 @@ type ResourceTypeModel struct {
 
 ```
 
-### 资源删除
+### 资源分类删除
 `/api/v1/resource-type/delete`
 
 #### 方法

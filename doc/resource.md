@@ -3,6 +3,7 @@
 ## 定义
 ```go
 package models
+
 import (
 	"errors"
 	"time"
@@ -22,7 +23,7 @@ type ResourceModel struct {
 
 ## 接口 
 
-### 添加资源分类
+### 添加资源
 `/api/v1/resource/add`
 
 #### 方法
@@ -160,13 +161,14 @@ id=1,2,3,4
 }
 ```
 
-### 修改资源分类
+### 修改资源
 `/api/v1/resource/update`
 
 #### 方法
 `post`
 
 #### 参数:  
+`id string`
 `name string`
 `desc string`
 `type string`

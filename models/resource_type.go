@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"simple-ims/utils"
 	"strings"
 	"time"
 )
@@ -17,7 +16,7 @@ type ResourceTypeModel struct {
 //查询所有
 func (r *ResourceTypeModel) All() (*[]ResourceTypeModel, error) {
 
-	db := utils.GetDBInstance().DB
+	db := GetDBInstance().DB
 	var resources []ResourceTypeModel
 	model := db.Order("id DESC").Find(&resources)
 	return model.Value.(*[]ResourceTypeModel), model.Error
@@ -27,7 +26,7 @@ func (r *ResourceTypeModel) All() (*[]ResourceTypeModel, error) {
 //根据ID删除
 func (r *ResourceTypeModel) DeleteByIds(ids []int) (*ResourceTypeModel, error) {
 
-	db := utils.GetDBInstance().DB
+	db := GetDBInstance().DB
 	model := db.Where(ids).Delete(r)
 	if model.RowsAffected == 0 {
 		return nil, errors.New("无此资源分类")
@@ -39,10 +38,10 @@ func (r *ResourceTypeModel) DeleteByIds(ids []int) (*ResourceTypeModel, error) {
 //更新
 func (r *ResourceTypeModel) Update() (*ResourceTypeModel, error) {
 
-	db := utils.GetDBInstance().DB
+	db := GetDBInstance().DB
 	model := db.Model(r).Updates(r)
 
-	if model.Error != nil && strings.Contains(model.Error.Error(), utils.UniqueFailed) {
+	if model.Error != nil && strings.Contains(model.Error.Error(), UniqueFailed) {
 		return model.Value.(*ResourceTypeModel), errors.New("资源分类已经存在")
 	}
 
@@ -56,11 +55,10 @@ func (r *ResourceTypeModel) Update() (*ResourceTypeModel, error) {
 //添加
 func (r *ResourceTypeModel) Insert() (*ResourceTypeModel, error) {
 
-	db := utils.GetDBInstance().DB
-	db.AutoMigrate(r)
+	db := GetDBInstance().DB
 	model := db.Create(r)
 
-	if model.Error != nil && strings.Contains(model.Error.Error(), utils.UniqueFailed) {
+	if model.Error != nil && strings.Contains(model.Error.Error(), UniqueFailed) {
 		return model.Value.(*ResourceTypeModel), errors.New("资源分类已经存在")
 	}
 

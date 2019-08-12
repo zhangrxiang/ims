@@ -1,4 +1,4 @@
-package utils
+package models
 
 import (
 	"github.com/jinzhu/gorm"
@@ -19,18 +19,26 @@ const UniqueFailed = "UNIQUE constraint failed"
 func GetDBInstance() *DB {
 	dbOnce.Do(func() {
 		db = &DB{}
-		db.init()
+		db.Init()
 	})
 	return db
 }
 
-func (db *DB) init() {
+func (db *DB) Init() {
 	var err error
-	db.DB, err = gorm.Open("sqlite3", "./models/model.db")
+	db.DB, err = gorm.Open("sqlite3", "./database.db")
 	if err != nil {
 		panic("failed to connect database")
 	}
-	//db.DB.AutoMigrate(&models.UserModel{})
+
+	for _, v := range []interface{}{
+		(*UserModel)(nil),
+		(*ResourceModel)(nil),
+		(*ResourceTypeModel)(nil),
+	} {
+		db.DB.AutoMigrate(v)
+	}
+
 }
 
 func (db *DB) Close() {
