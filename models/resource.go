@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"github.com/jinzhu/gorm"
 	"simple-ims/utils"
 	"time"
 )
@@ -43,15 +42,9 @@ type ResourceModel struct {
 	CreateAt time.Time `json:"create_at"`
 }
 
-var db *gorm.DB
-
-func init() {
-	db = utils.GetDBInstance().DB
-	r := &ResourceModel{}
-	db.AutoMigrate(r)
-}
-
 func (r *ResourceModel) FindByHash(h string) (*ResourceModel, error) {
+	db := utils.GetDBInstance().DB
+	db.AutoMigrate(r)
 	model := db.Where("hash = ?", h).First(r)
 	if model.RowsAffected == 0 {
 		return nil, nil
@@ -60,6 +53,8 @@ func (r *ResourceModel) FindByHash(h string) (*ResourceModel, error) {
 }
 
 func (r *ResourceModel) All() (*[]ResourceModel, error) {
+	db := utils.GetDBInstance().DB
+	db.AutoMigrate(r)
 	var resources []ResourceModel
 	model := db.Order("id DESC").Find(&resources)
 
@@ -67,6 +62,8 @@ func (r *ResourceModel) All() (*[]ResourceModel, error) {
 }
 
 func (r *ResourceModel) Insert() (*ResourceModel, error) {
+	db := utils.GetDBInstance().DB
+	db.AutoMigrate(r)
 	model := db.Create(r)
 
 	return model.Value.(*ResourceModel), model.Error
@@ -74,6 +71,7 @@ func (r *ResourceModel) Insert() (*ResourceModel, error) {
 
 //根据ID删除
 func (r *ResourceModel) DeleteByIds(ids []int) (*ResourceModel, error) {
+	db := utils.GetDBInstance().DB
 	model := db.Where(ids).Delete(r)
 
 	if model.RowsAffected == 0 {
@@ -85,6 +83,7 @@ func (r *ResourceModel) DeleteByIds(ids []int) (*ResourceModel, error) {
 
 //更新
 func (r *ResourceModel) Update() (*ResourceModel, error) {
+	db := utils.GetDBInstance().DB
 	model := db.Model(r).Updates(r)
 
 	if model.RowsAffected == 0 {

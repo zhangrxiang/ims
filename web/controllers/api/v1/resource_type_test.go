@@ -9,8 +9,8 @@ import (
 func TestResourceTypeAdd(t *testing.T) {
 
 	utils.Post("/api/v1/resource-type/add", url.Values{
-		"name": {"周界二"},
-		"desc": {"周界一周界一周界一周界一"},
+		"name": {"周界三"},
+		"desc": {"周界三周界三"},
 	}.Encode())
 
 }
@@ -18,7 +18,7 @@ func TestResourceTypeAdd(t *testing.T) {
 func TestResourceTypeDelete(t *testing.T) {
 
 	utils.TUrl.RawQuery = url.Values{
-		"id": {"13"},
+		"id": {"17"},
 	}.Encode()
 	utils.Get("/api/v1/resource-type/delete")
 

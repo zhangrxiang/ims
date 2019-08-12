@@ -50,7 +50,7 @@ func ResourceAdd(ctx iris.Context) {
 		_, err = os.Stat(uploadDir)
 
 		if os.IsNotExist(err) {
-			err := os.MkdirAll(uploadDir, 0666)
+			err := os.MkdirAll(uploadDir, 0777)
 			if err != nil {
 				response(ctx, false, "创建文件夹失败:"+err.Error(), nil)
 				return
@@ -75,7 +75,7 @@ func ResourceAdd(ctx iris.Context) {
 		resourceModel.File = info.Filename
 		resourceModel.Path = uploadDir + resourceModel.Hash + path.Ext(info.Filename)
 		resourceModel.CreateAt = time.Now()
-		out, err := os.OpenFile(resourceModel.Path, os.O_WRONLY|os.O_CREATE, 0666)
+		out, err := os.OpenFile(resourceModel.Path, os.O_RDWR|os.O_CREATE, 0777)
 
 		if err != nil {
 			response(ctx, false, "打开文件失败:"+err.Error(), nil)
@@ -83,6 +83,7 @@ func ResourceAdd(ctx iris.Context) {
 		}
 		defer out.Close()
 
+		_, _ = file.Seek(0, io.SeekStart)
 		_, err = io.Copy(out, file)
 		if err != nil {
 			response(ctx, false, "保存文件失败:"+err.Error(), nil)
@@ -202,7 +203,7 @@ func ResourceUpdate(ctx iris.Context) {
 		resourceModel.File = info.Filename
 		resourceModel.Path = uploadDir + resourceModel.Hash + path.Ext(info.Filename)
 		resourceModel.CreateAt = time.Now()
-		out, err := os.OpenFile(resourceModel.Path, os.O_WRONLY|os.O_CREATE, 0666)
+		out, err := os.OpenFile(resourceModel.Path, os.O_RDWR|os.O_CREATE, 0777)
 
 		if err != nil {
 			response(ctx, false, "打开文件失败:"+err.Error(), nil)
@@ -210,6 +211,7 @@ func ResourceUpdate(ctx iris.Context) {
 		}
 		defer out.Close()
 
+		_, _ = file.Seek(0, io.SeekStart)
 		_, err = io.Copy(out, file)
 		if err != nil {
 			response(ctx, false, "保存文件失败:"+err.Error(), nil)
@@ -243,4 +245,22 @@ func ResourceLists(ctx iris.Context) {
 		"timestamp": time.Now().Unix(),
 	})
 	return
+}
+
+//下载文件
+func ResourceDownload(ctx iris.Context) {
+	p := ctx.URLParam("path")
+	f := ctx.URLParam("file")
+
+	if p == "" || f == "" {
+		response(ctx, false, "文件路径不能为空", nil)
+		return
+	}
+
+	err := ctx.SendFile(p, f)
+
+	if err != nil {
+		response(ctx, false, "文件不存在", nil)
+	}
+
 }

@@ -64,6 +64,7 @@ func (web *Web) Init() {
 		resource.Get("/lists", v1.ResourceLists)
 		resource.Get("/delete", v1.ResourceDelete)
 		resource.Post("/update", v1.ResourceUpdate)
+		resource.Get("/download", v1.ResourceDownload)
 	}
 
 	web.app.OnErrorCode(iris.StatusNotFound, func(ctx iris.Context) {
