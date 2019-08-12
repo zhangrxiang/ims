@@ -1,5 +1,9 @@
 package models
 
+import (
+	"github.com/jinzhu/gorm"
+)
+
 type UserModel struct {
 	ID       int    `json:"id",gorm:"primary_key;AUTO_INCREMENT"`
 	Username string `json:"username",gorm:"not null;unique;type:varchar(30)"`
@@ -10,30 +14,47 @@ type UserModel struct {
 }
 
 func (u *UserModel) Find() (*UserModel, error) {
-	db := GetDBInstance().DB
-	model := db.Where("username = ? AND password >= ?", u.Username, u.Password).Find(u)
-
+	model := db.DB.Where("username = ? AND password = ?", u.Username, u.Password).Find(u)
 	return model.Value.(*UserModel), model.Error
 }
 
-func (u *UserModel) All() (*[]UserModel, error) {
-	db := GetDBInstance().DB
-	var users []UserModel
-	model := db.Find(&users)
-
-	return model.Value.(*[]UserModel), model.Error
+func (u *UserModel) FindByUsername() (*UserModel, error) {
+	model := db.DB.Where("username = ?", u.Username).Find(u)
+	return model.Value.(*UserModel), model.Error
 }
 
 func (u *UserModel) FindByID() (*UserModel, error) {
-	db := GetDBInstance().DB
-	db = db.First(u, u.ID)
+	model := db.DB.First(u, u.ID)
+	return u, model.Error
+}
 
-	return u, db.Error
+func (u *UserModel) All() (*[]UserModel, error) {
+	var users []UserModel
+	model := db.DB.Find(&users)
+	return model.Value.(*[]UserModel), model.Error
 }
 
 func (u *UserModel) Insert() (*UserModel, error) {
-	db := GetDBInstance().DB
-	db = db.Create(u)
+	_, err := u.FindByUsername()
+	if err == gorm.ErrRecordNotFound {
+		model := db.DB.Create(u)
+		return model.Value.(*UserModel), model.Error
+	}
+	return nil, RecordExists
+}
 
-	return db.Value.(*UserModel), db.Error
+func (u *UserModel) Delete(ids []int) (*UserModel, error) {
+	model := db.DB.Where(ids).Delete(u)
+	if model.RowsAffected == 0 {
+		return nil, NoRecordExists
+	}
+	return model.Value.(*UserModel), model.Error
+}
+
+func (u *UserModel) Update() (*UserModel, error) {
+	model := db.DB.Model(u).Updates(u)
+	if model.RowsAffected == 0 {
+		return nil, NoRecordExists
+	}
+	return model.Value.(*UserModel), model.Error
 }

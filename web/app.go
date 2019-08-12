@@ -50,6 +50,9 @@ func (web *Web) Init() {
 	{
 		user.Get("/login", v1.UserLogin)
 		user.Get("/lists", v1.UserLists)
+		user.Post("/register", v1.UserRegister)
+		user.Get("/delete", v1.UserDelete)
+		user.Post("/update", v1.UserUpdate)
 	}
 
 	//资源分类

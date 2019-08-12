@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"sync"
@@ -15,6 +16,11 @@ type DB struct {
 
 //唯一冲突
 const UniqueFailed = "UNIQUE constraint failed"
+
+var (
+	RecordExists   = errors.New("数据记录已经存在")
+	NoRecordExists = errors.New("无数据记录存在")
+)
 
 func GetDBInstance() *DB {
 	dbOnce.Do(func() {
