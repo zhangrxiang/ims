@@ -32,7 +32,7 @@ func NewOnceWeb() *Web {
 }
 
 func (web *Web) Init() {
-
+	web.app.Logger().SetOutput(newLogFile())
 	web.app.Logger().SetLevel("debug")
 	web.app.Use(logger.New())
 	web.app.RegisterView(iris.HTML("./www", ".html"))

@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"github.com/kataras/iris"
 )
 
@@ -21,9 +22,13 @@ func response(ctx iris.Context, success bool, errMsg string, data interface{}) {
 		ErrMsg:  errMsg,
 		Data:    data,
 	})
-
+	if success {
+		ctx.Application().Logger().Info(fmt.Sprintf("[success:%t],[err_msg:%s],[data:%t]", success, errMsg, data))
+	} else {
+		ctx.Application().Logger().Warn(fmt.Sprintf("[success:%t],[err_msg:%s],[data:%t]", success, errMsg, data))
+	}
 	if err != nil {
-		ctx.Application().Logger().Fatal("输出json数据失败,n:", n, err)
+		ctx.Application().Logger().Warn("输出json数据失败,n:", n, err)
 		return
 	}
 	return
