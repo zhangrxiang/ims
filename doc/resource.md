@@ -131,6 +131,57 @@ type ResourceModel struct {
 }
 ```
 
+### 资源列表
+`/api/v1/resource/group-lists`
+
+#### 方法
+`get`
+
+#### 参数:  
+
+#### 返回:
+
+```json
+{
+    "success": true,
+    "err_msg": "",
+    "data": {
+        "resources": [
+            {
+                "desc": "周界1周界1周界1周界1周界10",
+                "lists": [
+                    {
+                        "id": 56,
+                        "name": "震动是自动发",
+                        "type": 6,
+                        "file": "微信图片_20190807110600.jpg",
+                        "path": "uploads/2019/08/67914cce2e3f7b7b6158922c66783ceb.jpg",
+                        "hash": "67914cce2e3f7b7b6158922c66783ceb",
+                        "version": "123",
+                        "desc": "ttttttttttt",
+                        "create_at": "2019-08-13T14:25:07.8746267+08:00"
+                    },
+                    {
+                        "id": 57,
+                        "name": "震动是",
+                        "type": 6,
+                        "file": "p.jpg",
+                        "path": "uploads/2019/08/17f8d762189afb05f9aa75cfac3672ed.jpg",
+                        "hash": "17f8d762189afb05f9aa75cfac3672ed",
+                        "version": "123",
+                        "desc": "ttttttttttt",
+                        "create_at": "2019-08-13T14:25:32.2437941+08:00"
+                    }
+                ],
+                "name": "3123"
+            }
+        ],
+        "timestamp": 1565677534
+    }
+}
+```
+
+
 ### 资源删除
 `/api/v1/resource/delete`
 

@@ -22,7 +22,7 @@ func (r *ResourceModel) Find() (*ResourceModel, error) {
 	return resource, model.Error
 }
 
-func (r *ResourceModel) FindIds(ids []int) (*[]ResourceModel, error) {
+func (r *ResourceModel) FindByIds(ids []int) (*[]ResourceModel, error) {
 	var resources []ResourceModel
 	model := db.DB.Where(ids).Order("id DESC").Find(&resources)
 	if model.RowsAffected == 0 {
@@ -38,6 +38,15 @@ func (r *ResourceModel) FindByHash(h string) (*ResourceModel, error) {
 		return nil, NoRecordExists
 	}
 	return resource, model.Error
+}
+
+func (r *ResourceModel) FindByType(t int) ([]ResourceModel, error) {
+	var resources []ResourceModel
+	model := db.DB.Where("type = ?", t).Find(&resources)
+	if model.RowsAffected == 0 {
+		return nil, NoRecordExists
+	}
+	return resources, model.Error
 }
 
 func (r *ResourceModel) All() (*[]ResourceModel, error) {

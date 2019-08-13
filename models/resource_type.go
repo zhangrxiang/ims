@@ -14,11 +14,10 @@ type ResourceTypeModel struct {
 }
 
 //查询所有
-func (r *ResourceTypeModel) All() (*[]ResourceTypeModel, error) {
+func (r *ResourceTypeModel) All() ([]ResourceTypeModel, error) {
 	var resources []ResourceTypeModel
 	model := db.DB.Order("id DESC").Find(&resources)
-	return model.Value.(*[]ResourceTypeModel), model.Error
-
+	return resources, model.Error
 }
 
 func (r *ResourceTypeModel) FindByResourceName() (*ResourceTypeModel, error) {

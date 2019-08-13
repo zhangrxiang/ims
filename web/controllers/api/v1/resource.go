@@ -95,7 +95,7 @@ func ResourceDelete(ctx iris.Context) {
 	}
 
 	resourceModel := &models.ResourceModel{}
-	resources, err := resourceModel.FindIds(ids)
+	resources, err := resourceModel.FindByIds(ids)
 	if err != nil {
 		response(ctx, false, "查找要删除的资源失败:"+err.Error(), nil)
 		return
@@ -191,7 +191,7 @@ func ResourceUpdate(ctx iris.Context) {
 	model, err := resourceModel.Update()
 
 	if err != nil {
-		response(ctx, false, "添加资源失败:", nil)
+		response(ctx, false, "添加资源失败:"+err.Error(), nil)
 		return
 	}
 	response(ctx, true, "保存文件成功:", iris.Map{
@@ -214,6 +214,51 @@ func ResourceLists(ctx iris.Context) {
 		"timestamp": time.Now().Unix(),
 	})
 	return
+}
+
+//资源列表
+func ResourceGroupLists(ctx iris.Context) {
+
+	typeModel := &models.ResourceTypeModel{}
+	allType, err := typeModel.All()
+
+	if err == nil && allType != nil {
+		resourceModel := &models.ResourceModel{}
+		var data []map[string]interface{}
+		for _, t := range allType {
+			model, err := resourceModel.FindByType(t.ID)
+			if model != nil && err == nil {
+				resource := make(map[string]interface{})
+				resource["name"] = t.Name
+				resource["desc"] = t.Desc
+				resource["lists"] = model
+				data = append(data, resource)
+			}
+			if err == models.NoRecordExists {
+				response(ctx, true, "无可用资源", nil)
+				return
+			}
+
+			if err != nil {
+				response(ctx, false, "获取资源失败:"+err.Error(), nil)
+				return
+			}
+		}
+		response(ctx, true, "", iris.Map{
+			"resources": data,
+			"timestamp": time.Now().Unix(),
+		})
+		return
+	}
+	if err == models.NoRecordExists {
+		response(ctx, true, "请先添加资源分类", nil)
+		return
+	}
+	if err != nil {
+		response(ctx, false, "获取资源类型列表失败:"+err.Error(), nil)
+		return
+	}
+
 }
 
 //下载文件

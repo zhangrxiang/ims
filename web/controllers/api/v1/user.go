@@ -11,7 +11,6 @@ import (
 
 //用户列表
 func UserLists(ctx iris.Context) {
-
 	users, err := (&models.UserModel{}).All()
 	if err != nil {
 		response(ctx, false, "无用户:"+err.Error(), nil)
@@ -23,12 +22,10 @@ func UserLists(ctx iris.Context) {
 		"timestamp": time.Now().Unix(),
 	})
 	return
-
 }
 
 //用户登陆
 func UserLogin(ctx iris.Context) {
-
 	username := ctx.URLParamDefault("username", "")
 	password := ctx.URLParamDefault("password", "")
 
@@ -52,7 +49,6 @@ func UserLogin(ctx iris.Context) {
 		"user":      model,
 		"timestamp": time.Now().Unix(),
 	})
-	return
 }
 
 //用户注册
@@ -95,7 +91,6 @@ func UserRegister(ctx iris.Context) {
 	response(ctx, true, "注册用户成功", iris.Map{
 		"user": model,
 	})
-
 }
 
 //用户删除

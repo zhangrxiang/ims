@@ -71,6 +71,7 @@ func (web *Web) Init() {
 	{
 		resource.Post("/add", v1.ResourceAdd)
 		resource.Get("/lists", v1.ResourceLists)
+		resource.Get("/group-lists", v1.ResourceGroupLists)
 		resource.Get("/delete", v1.ResourceDelete)
 		resource.Post("/update", v1.ResourceUpdate)
 		resource.Get("/download", v1.ResourceDownload)
