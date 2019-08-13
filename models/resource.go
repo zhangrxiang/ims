@@ -1,11 +1,8 @@
 package models
 
 import (
-	"errors"
 	"time"
 )
-
-type ResourceType byte
 
 type ResourceModel struct {
 	ID       int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
@@ -19,49 +16,56 @@ type ResourceModel struct {
 	CreateAt time.Time `json:"create_at"`
 }
 
-func (r *ResourceModel) FindByHash(h string) (*ResourceModel, error) {
-	db := GetDBInstance().DB
-	model := db.Where("hash = ?", h).First(r)
+func (r *ResourceModel) Find() (*ResourceModel, error) {
+	resource := &ResourceModel{}
+	model := db.DB.First(resource, r.ID)
+	return resource, model.Error
+}
+
+func (r *ResourceModel) FindIds(ids []int) (*[]ResourceModel, error) {
+	var resources []ResourceModel
+	model := db.DB.Where(ids).Order("id DESC").Find(&resources)
 	if model.RowsAffected == 0 {
-		return nil, nil
+		return nil, NoRecordExists
 	}
-	return model.Value.(*ResourceModel), model.Error
+	return model.Value.(*[]ResourceModel), model.Error
+}
+
+func (r *ResourceModel) FindByHash(h string) (*ResourceModel, error) {
+	resource := &ResourceModel{}
+	model := db.DB.Where("hash = ?", h).First(resource)
+	if model.RowsAffected == 0 {
+		return nil, NoRecordExists
+	}
+	return resource, model.Error
 }
 
 func (r *ResourceModel) All() (*[]ResourceModel, error) {
-	db := GetDBInstance().DB
 	var resources []ResourceModel
-	model := db.Order("id DESC").Find(&resources)
-
+	model := db.DB.Order("id DESC").Find(&resources)
 	return model.Value.(*[]ResourceModel), model.Error
 }
 
 func (r *ResourceModel) Insert() (*ResourceModel, error) {
-	db := GetDBInstance().DB
-	model := db.Create(r)
-
+	model := db.DB.Create(r)
 	return model.Value.(*ResourceModel), model.Error
 }
 
 //根据ID删除
 func (r *ResourceModel) DeleteByIds(ids []int) (*ResourceModel, error) {
-	db := GetDBInstance().DB
-	model := db.Where(ids).Delete(r)
-
+	model := db.DB.Where(ids).Delete(r)
 	if model.RowsAffected == 0 {
-		return nil, errors.New("无此资源")
+		return nil, NoRecordExists
 	}
-
 	return model.Value.(*ResourceModel), model.Error
 }
 
 //更新
 func (r *ResourceModel) Update() (*ResourceModel, error) {
-	db := GetDBInstance().DB
-	model := db.Model(r).Updates(r)
-
+	resource := &ResourceModel{}
+	model := db.DB.Model(resource).Updates(r)
 	if model.RowsAffected == 0 {
-		return nil, errors.New("无此资源")
+		return nil, NoRecordExists
 	}
 	return model.Value.(*ResourceModel), model.Error
 }

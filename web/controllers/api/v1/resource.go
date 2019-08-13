@@ -1,15 +1,13 @@
 package v1
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"github.com/kataras/iris"
-	"io"
+	"log"
 	"os"
 	"path"
 	"simple-ims/models"
+	"simple-ims/utils"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -47,27 +45,19 @@ func ResourceAdd(ctx iris.Context) {
 		defer file.Close()
 
 		uploadDir := "uploads/" + time.Now().Format("2006/01/")
-		_, err = os.Stat(uploadDir)
-
-		if os.IsNotExist(err) {
-			err := os.MkdirAll(uploadDir, 0777)
-			if err != nil {
-				response(ctx, false, "创建文件夹失败:"+err.Error(), nil)
-				return
-			}
-		}
-
-		h := md5.New()
-		_, err = io.Copy(h, file)
-		if err != nil {
-			response(ctx, false, "读取文件失败:"+err.Error(), nil)
+		if !utils.Mkdir(uploadDir) {
+			response(ctx, false, "创建文件夹失败", nil)
 			return
 		}
 
-		resourceModel.Hash = hex.EncodeToString(h.Sum(nil))
+		resourceModel.Hash, err = utils.Md5File(file)
+		if err != nil {
+			response(ctx, false, "获取文件MD5失败:"+err.Error(), nil)
+			return
+		}
 		model, err := resourceModel.FindByHash(resourceModel.Hash)
 		if model != nil {
-			response(ctx, true, "保存文件成功:", iris.Map{
+			response(ctx, true, "相同的文件已存在:", iris.Map{
 				"resource": model,
 			})
 			return
@@ -75,16 +65,7 @@ func ResourceAdd(ctx iris.Context) {
 		resourceModel.File = info.Filename
 		resourceModel.Path = uploadDir + resourceModel.Hash + path.Ext(info.Filename)
 		resourceModel.CreateAt = time.Now()
-		out, err := os.OpenFile(resourceModel.Path, os.O_RDWR|os.O_CREATE, 0777)
-
-		if err != nil {
-			response(ctx, false, "打开文件失败:"+err.Error(), nil)
-			return
-		}
-		defer out.Close()
-
-		_, _ = file.Seek(0, io.SeekStart)
-		_, err = io.Copy(out, file)
+		err = utils.CopyFile(resourceModel.Path, file)
 		if err != nil {
 			response(ctx, false, "保存文件失败:"+err.Error(), nil)
 			return
@@ -97,38 +78,43 @@ func ResourceAdd(ctx iris.Context) {
 		response(ctx, false, "添加资源失败:", nil)
 		return
 	}
-	response(ctx, true, "保存文件成功:", iris.Map{
+	response(ctx, true, "保存文件成功", iris.Map{
 		"resource": model,
 	})
 }
 
 //删除资源
 func ResourceDelete(ctx iris.Context) {
-	ids := ctx.FormValue("id")
+	idsStr := ctx.FormValue("id")
 
-	if ids == "" {
-		response(ctx, false, "资源ID不能为空", nil)
+	ids := utils.StrToIntAlice(idsStr, ",")
+
+	if ids == nil {
+		response(ctx, false, "资源ID不合法", nil)
 		return
 	}
 
-	var id []int
-	split := strings.Split(ids, ",")
-	for _, v := range split {
-		i, err := strconv.Atoi(v)
-		if err != nil {
-			response(ctx, false, "资源ID非法:"+err.Error(), nil)
-			return
-		}
-		id = append(id, i)
-	}
-
 	resourceModel := &models.ResourceModel{}
-	_, err := resourceModel.DeleteByIds(id)
-
+	resources, err := resourceModel.FindIds(ids)
+	if err != nil {
+		response(ctx, false, "查找要删除的资源失败:"+err.Error(), nil)
+		return
+	}
+	_, err = resourceModel.DeleteByIds(ids)
 	if err != nil {
 		response(ctx, false, "删除资源失败:"+err.Error(), nil)
 		return
 	}
+	go func(resources *[]models.ResourceModel) {
+		for _, resource := range *resources {
+			err := os.Remove(resource.Path)
+			if err != nil {
+				log.Println("remove file", resource.Name, err)
+			} else {
+				log.Println("remove file", resource.Name)
+			}
+		}
+	}(resources)
 
 	response(ctx, true, "", nil)
 	return
@@ -175,44 +161,27 @@ func ResourceUpdate(ctx iris.Context) {
 		defer file.Close()
 
 		uploadDir := "uploads/" + time.Now().Format("2006/01/")
-		_, err = os.Stat(uploadDir)
-
-		if os.IsNotExist(err) {
-			err := os.MkdirAll(uploadDir, 0666)
-			if err != nil {
-				response(ctx, false, "创建文件夹失败:"+err.Error(), nil)
-				return
-			}
-		}
-
-		h := md5.New()
-		_, err = io.Copy(h, file)
-		if err != nil {
-			response(ctx, false, "读取文件失败:"+err.Error(), nil)
+		if !utils.Mkdir(uploadDir) {
+			response(ctx, false, "创建文件夹失败", nil)
 			return
 		}
 
-		resourceModel.Hash = hex.EncodeToString(h.Sum(nil))
+		resourceModel.Hash, err = utils.Md5File(file)
+		if err != nil {
+			response(ctx, false, "获取文件MD5失败:"+err.Error(), nil)
+			return
+		}
 		model, err := resourceModel.FindByHash(resourceModel.Hash)
 		if model != nil {
-			//response(ctx, true, "保存文件成功:", iris.Map{
-			//	"resource": model,
-			//})
-			//return
+			response(ctx, true, "相同的文件已存在:", iris.Map{
+				"resource": model,
+			})
+			return
 		}
 		resourceModel.File = info.Filename
 		resourceModel.Path = uploadDir + resourceModel.Hash + path.Ext(info.Filename)
 		resourceModel.CreateAt = time.Now()
-		out, err := os.OpenFile(resourceModel.Path, os.O_RDWR|os.O_CREATE, 0777)
-
-		if err != nil {
-			response(ctx, false, "打开文件失败:"+err.Error(), nil)
-			return
-		}
-		defer out.Close()
-
-		_, _ = file.Seek(0, io.SeekStart)
-		_, err = io.Copy(out, file)
+		err = utils.CopyFile(resourceModel.Path, file)
 		if err != nil {
 			response(ctx, false, "保存文件失败:"+err.Error(), nil)
 			return
