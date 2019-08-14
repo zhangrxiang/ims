@@ -59,3 +59,9 @@ func Md5File(file io.Reader) (string, error) {
 	}
 	return hex.EncodeToString(instance.Sum(nil)), nil
 }
+
+func Md5Str(value string) string {
+	instance := md5.New()
+	instance.Write([]byte(value))
+	return hex.EncodeToString(instance.Sum(nil))
+}

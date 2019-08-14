@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"github.com/jinzhu/gorm"
 	"time"
 )
@@ -60,7 +59,7 @@ func (r *ResourceTypeModel) Insert() (*ResourceTypeModel, error) {
 	_, err := r.FindByResourceName()
 	if err == gorm.ErrRecordNotFound {
 		model := db.DB.Create(r)
-		return model.Value.(*ResourceTypeModel), errors.New("资源分类已经存在")
+		return model.Value.(*ResourceTypeModel), nil
 	}
 	return nil, RecordExists
 }

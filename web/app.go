@@ -7,6 +7,7 @@ import (
 	"log"
 	"simple-ims/models"
 	"simple-ims/web/controllers/api/v1"
+	"simple-ims/web/middleware"
 	"sync"
 )
 
@@ -35,7 +36,6 @@ func (web *Web) Init() {
 	web.app.Logger().SetOutput(newLogFile())
 	web.app.Logger().SetLevel("debug")
 	web.app.Use(logger.New())
-	web.app.RegisterView(iris.HTML("./www", ".html"))
 	web.app.SPA(web.app.StaticHandler("./www", false, false))
 	web.app.Configure(iris.WithConfiguration(iris.Configuration{
 		Charset: "UTF-8",
@@ -47,10 +47,12 @@ func (web *Web) Init() {
 	})
 
 	models.GetDBInstance()
+
 	//用户
+	web.app.Get(v1Api+"/user/login", v1.UserLogin)
 	user := web.app.Party(v1Api + "/user")
+	user.Use(middleware.JWT)
 	{
-		user.Get("/login", v1.UserLogin)
 		user.Get("/lists", v1.UserLists)
 		user.Post("/register", v1.UserRegister)
 		user.Get("/delete", v1.UserDelete)
@@ -59,6 +61,7 @@ func (web *Web) Init() {
 
 	//资源分类
 	resourceType := web.app.Party(v1Api + "/resource-type")
+	resourceType.Use(middleware.JWT)
 	{
 		resourceType.Post("/add", v1.ResourceTypeAdd)
 		resourceType.Get("/lists", v1.ResourceTypeLists)
@@ -68,26 +71,27 @@ func (web *Web) Init() {
 
 	//资源
 	resource := web.app.Party(v1Api + "/resource")
+	resource.Use(middleware.JWT)
 	{
 		resource.Post("/add", v1.ResourceAdd)
 		resource.Get("/lists", v1.ResourceLists)
-		resource.Get("/group-lists", v1.ResourceGroupLists)
 		resource.Get("/delete", v1.ResourceDelete)
 		resource.Post("/update", v1.ResourceUpdate)
-		resource.Get("/download", v1.ResourceDownload)
 	}
+	web.app.Get(v1Api+"/resource/download", v1.ResourceDownload)
+	web.app.Get(v1Api+"/resource/group-lists", v1.ResourceGroupLists)
 
-	web.app.OnErrorCode(iris.StatusNotFound, func(ctx iris.Context) {
-		_, _ = ctx.JSON(iris.Map{
-			"success": false,
-			"err_msg": iris.StatusNotFound,
-			"data":    []int{},
-		})
-	})
+	//web.app.OnErrorCode(iris.StatusNotFound, func(ctx iris.Context) {
+	//	_, _ = ctx.JSON(iris.Map{
+	//		"success": false,
+	//		"err_msg": iris.StatusNotFound,
+	//		"data":    []int{},
+	//	})
+	//})
 
 	go func() {
 		err := web.app.Run(
-			iris.Addr("localhost:8081"),
+			iris.Addr(":8081"),
 			iris.WithoutServerError(iris.ErrServerClosed),
 			iris.WithOptimizations,
 		)

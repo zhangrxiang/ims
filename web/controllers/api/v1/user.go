@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"simple-ims/models"
 	"simple-ims/utils"
+	"simple-ims/web/middleware"
 	"strconv"
 	"time"
 )
@@ -45,9 +46,19 @@ func UserLogin(ctx iris.Context) {
 		response(ctx, false, "无此用户:"+err.Error(), nil)
 		return
 	}
+
+	token, err := middleware.GenerateToken(model.ID, model.Username)
+
+	if err != nil {
+		response(ctx, false, "生成token失败"+err.Error(), nil)
+		return
+	}
+
 	response(ctx, true, "", iris.Map{
-		"user":      model,
-		"timestamp": time.Now().Unix(),
+		"user":       model,
+		"token":      token,
+		"token_type": "Bearer",
+		"timestamp":  time.Now().Unix(),
 	})
 }
 
