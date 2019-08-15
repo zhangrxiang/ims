@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var mySecret = []byte("secret")
+var mySecret = []byte("atian-2019")
 
 type CustomClaims struct {
 	UserID   int
@@ -20,12 +20,14 @@ var JWT = jwt.New(jwt.Config{
 	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 		return mySecret, nil
 	},
+	Expiration:    true,
 	SigningMethod: jwt.SigningMethodHS256,
 	ErrorHandler: func(context context.Context, err error) {
 		if err != nil {
+			//context.StatusCode(http.StatusUnauthorized)
 			_, _ = context.JSON(iris.Map{
 				"success": false,
-				"err_msg": "token 验证失败",
+				"err_msg": "token 验证失败:" + err.Error(),
 				"data":    []int{},
 			})
 			return
@@ -45,11 +47,6 @@ func GenerateToken(userId int, username string) (string, error) {
 			Issuer:    "iris",
 		},
 	})
-	//token := jwt.NewTokenWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-	//	"user_id":  userId,
-	//	"username": username,
-	//})
-
 	// Sign and get the complete encoded token as a string using the secret
 	return token.SignedString(mySecret)
 }

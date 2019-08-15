@@ -7,6 +7,7 @@ import (
 	"simple-ims/utils"
 	"simple-ims/web/middleware"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -43,7 +44,7 @@ func UserLogin(ctx iris.Context) {
 	model, err := user.Find()
 
 	if err != nil {
-		response(ctx, false, "无此用户:"+err.Error(), nil)
+		response(ctx, false, "登陆失败:"+err.Error(), nil)
 		return
 	}
 
@@ -54,6 +55,7 @@ func UserLogin(ctx iris.Context) {
 		return
 	}
 
+	model.Password = strings.Repeat("*", len(model.Password))
 	response(ctx, true, "", iris.Map{
 		"user":       model,
 		"token":      token,
