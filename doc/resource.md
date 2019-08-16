@@ -30,11 +30,18 @@ type ResourceModel struct {
 `post`
 
 #### 参数:  
-`name string`
-`desc string`
-`type string`
-`version string`
-`file file`
+
+##### header
+```text
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJuYW1lIjoiYWRtaW4iLCJleHAiOjE1NjYwMTAxODcsImlzcyI6ImlyaXMifQ.BEkfqhgvj8jqOgIkCQYHLY0cQI0anA5_DrM7ybRALlU
+```
+```
+name string
+desc string
+type string
+version string
+file file
+```
 
 #### 返回:
 
@@ -84,6 +91,10 @@ type ResourceModel struct {
 
 #### 参数:  
 
+##### header
+```text
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJuYW1lIjoiYWRtaW4iLCJleHAiOjE1NjYwMTAxODcsImlzcyI6ImlyaXMifQ.BEkfqhgvj8jqOgIkCQYHLY0cQI0anA5_DrM7ybRALlU
+```
 #### 返回:
 
 ```json
@@ -189,8 +200,15 @@ type ResourceModel struct {
 `get`
 
 #### 参数:  
-`id string`
+
+##### header
+```text
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJuYW1lIjoiYWRtaW4iLCJleHAiOjE1NjYwMTAxODcsImlzcyI6ImlyaXMifQ.BEkfqhgvj8jqOgIkCQYHLY0cQI0anA5_DrM7ybRALlU
+```
+```text
+id string
 id=1,2,3,4
+```
  
 #### 返回:
 
@@ -219,12 +237,19 @@ id=1,2,3,4
 `post`
 
 #### 参数:  
-`id string`
-`name string`
-`desc string`
-`type string`
-`version string`
-`file file`
+
+##### header
+```text
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJuYW1lIjoiYWRtaW4iLCJleHAiOjE1NjYwMTAxODcsImlzcyI6ImlyaXMifQ.BEkfqhgvj8jqOgIkCQYHLY0cQI0anA5_DrM7ybRALlU
+```
+```text
+id string
+name string
+desc string
+type string
+version string
+file file`
+```
 
 #### 返回:
 
@@ -273,8 +298,15 @@ id=1,2,3,4
 `get`
 
 #### 参数:  
-`path string`
-`file string`
+
+##### header
+```text
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJuYW1lIjoiYWRtaW4iLCJleHAiOjE1NjYwMTAxODcsImlzcyI6ImlyaXMifQ.BEkfqhgvj8jqOgIkCQYHLY0cQI0anA5_DrM7ybRALlU
+```
+```text
+path string
+file string
+```
 
 #### 返回:
 

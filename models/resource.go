@@ -14,6 +14,7 @@ type ResourceModel struct {
 	Version  string    `json:"version" gorm:"not null"`
 	Desc     string    `json:"desc" gorm:"not null"`
 	CreateAt time.Time `json:"create_at"`
+	UserId   int       `json:"user_id"`
 }
 
 func (r *ResourceModel) Find() (*ResourceModel, error) {

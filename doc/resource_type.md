@@ -27,8 +27,14 @@ type ResourceTypeModel struct {
 `post`
 
 #### 参数:  
-`name string`
-`desc string`
+##### header
+```text
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJuYW1lIjoiYWRtaW4iLCJleHAiOjE1NjYwMTAxODcsImlzcyI6ImlyaXMifQ.BEkfqhgvj8jqOgIkCQYHLY0cQI0anA5_DrM7ybRALlU
+```
+```text
+name string
+desc string
+```
 
 #### 返回:
 
@@ -73,7 +79,10 @@ type ResourceTypeModel struct {
 `get`
 
 #### 参数:  
-
+##### header
+```text
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJuYW1lIjoiYWRtaW4iLCJleHAiOjE1NjYwMTAxODcsImlzcyI6ImlyaXMifQ.BEkfqhgvj8jqOgIkCQYHLY0cQI0anA5_DrM7ybRALlU
+```
 #### 返回:
 
 ```json
@@ -120,8 +129,14 @@ type ResourceTypeModel struct {
 `get`
 
 #### 参数:  
-`id string`
+##### header
+```text
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJuYW1lIjoiYWRtaW4iLCJleHAiOjE1NjYwMTAxODcsImlzcyI6ImlyaXMifQ.BEkfqhgvj8jqOgIkCQYHLY0cQI0anA5_DrM7ybRALlU
+```
+```text
+id string
 id=1,2,3,4
+```
  
 #### 返回:
 
@@ -150,9 +165,15 @@ id=1,2,3,4
 `post`
 
 #### 参数:  
-`id string`
-`name string`
-`desc string`
+##### header
+```text
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJuYW1lIjoiYWRtaW4iLCJleHAiOjE1NjYwMTAxODcsImlzcyI6ImlyaXMifQ.BEkfqhgvj8jqOgIkCQYHLY0cQI0anA5_DrM7ybRALlU
+```
+```text
+id string
+name string
+desc string
+```
 
 #### 返回:
 

@@ -4,7 +4,6 @@ import (
 	"github.com/kataras/iris"
 	"log"
 	"os"
-	"path"
 	"simple-ims/models"
 	"simple-ims/utils"
 	"strconv"
@@ -17,6 +16,16 @@ func ResourceAdd(ctx iris.Context) {
 	_type := ctx.FormValue("type")
 	version := ctx.FormValue("version")
 	desc := ctx.FormValue("desc")
+
+	user, err := authUser(ctx)
+	if err != nil {
+		response(ctx, false, "请登录", nil)
+		return
+	}
+	if user.Role != "admin" {
+		response(ctx, false, "只有管理员才能添加资源", nil)
+		return
+	}
 
 	if name == "" || _type == "" {
 		response(ctx, false, "请输入资源名称,选择资源类型", nil)
@@ -33,6 +42,7 @@ func ResourceAdd(ctx iris.Context) {
 		Type:    t,
 		Version: version,
 		Desc:    desc,
+		UserId:  user.ID,
 	}
 
 	file, info, err := ctx.FormFile("file")
@@ -63,7 +73,7 @@ func ResourceAdd(ctx iris.Context) {
 			return
 		}
 		resourceModel.File = info.Filename
-		resourceModel.Path = uploadDir + resourceModel.Hash + path.Ext(info.Filename)
+		resourceModel.Path = uploadDir + utils.FileName(info.Filename, version)
 		resourceModel.CreateAt = time.Now()
 		err = utils.CopyFile(resourceModel.Path, file)
 		if err != nil {
@@ -72,12 +82,31 @@ func ResourceAdd(ctx iris.Context) {
 		}
 	}
 
-	model, err := resourceModel.Insert()
+	transaction := models.GetDBInstance().DB.Begin()
 
+	model, err := resourceModel.Insert()
 	if err != nil {
-		response(ctx, false, "添加资源失败:", nil)
+		transaction.Rollback()
+		response(ctx, false, "添加资源失败:"+err.Error(), nil)
 		return
 	}
+
+	resourceHistoryModel := &models.ResourceHistoryModel{
+		ResourceID: model.ID,
+		File:       model.File,
+		Version:    model.Version,
+		Path:       model.Path,
+		Hash:       model.Hash,
+	}
+	_, err = resourceHistoryModel.Insert()
+	if err != nil {
+		transaction.Rollback()
+		response(ctx, false, "保存历史资源版本失败:"+err.Error(), nil)
+		return
+	}
+
+	transaction.Commit()
+
 	response(ctx, true, "保存文件成功", iris.Map{
 		"resource": model,
 	})
@@ -179,7 +208,7 @@ func ResourceUpdate(ctx iris.Context) {
 			return
 		}
 		resourceModel.File = info.Filename
-		resourceModel.Path = uploadDir + resourceModel.Hash + path.Ext(info.Filename)
+		resourceModel.Path = uploadDir + utils.FileName(info.Filename, version)
 		resourceModel.CreateAt = time.Now()
 		err = utils.CopyFile(resourceModel.Path, file)
 		if err != nil {
@@ -188,13 +217,37 @@ func ResourceUpdate(ctx iris.Context) {
 		}
 	}
 
-	model, err := resourceModel.Update()
-
+	model, err := resourceModel.Find()
 	if err != nil {
-		response(ctx, false, "添加资源失败:"+err.Error(), nil)
+		response(ctx, false, "查找资源失败:"+err.Error(), nil)
 		return
 	}
-	response(ctx, true, "保存文件成功:", iris.Map{
+
+	transaction := models.GetDBInstance().DB.Begin()
+
+	resourceHistoryModel := &models.ResourceHistoryModel{
+		ResourceID: model.ID,
+		File:       model.File,
+		Version:    model.Version,
+		Path:       model.Path,
+		Hash:       model.Hash,
+	}
+	_, err = resourceHistoryModel.Insert()
+	if err != nil {
+		transaction.Rollback()
+		response(ctx, false, "保存历史资源版本失败:"+err.Error(), nil)
+		return
+	}
+	model, err = resourceModel.Update()
+	if err != nil {
+		transaction.Rollback()
+		response(ctx, false, "更新资源失败:"+err.Error(), nil)
+		return
+	}
+
+	transaction.Commit()
+
+	response(ctx, true, "更新资源成功:", iris.Map{
 		"resource": model,
 	})
 }

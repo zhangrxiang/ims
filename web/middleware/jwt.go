@@ -39,14 +39,20 @@ var JWT = jwt.New(jwt.Config{
 func GenerateToken(userId int, username string) (string, error) {
 	nowTime := time.Now()
 	expireTime := nowTime.Add(time.Duration(24) * time.Hour)
-	token := jwt.NewTokenWithClaims(jwt.SigningMethodHS256, CustomClaims{
-		userId,
-		username,
-		jwt2.StandardClaims{
-			ExpiresAt: expireTime.Unix(),
-			Issuer:    "iris",
-		},
+	token := jwt.NewTokenWithClaims(jwt.SigningMethodHS256, jwt2.MapClaims{
+		"userId":   userId,
+		"username": username,
+		"exp":      expireTime.Unix(),
+		"iss":      "iris",
 	})
+	//token := jwt.NewTokenWithClaims(jwt.SigningMethodHS256, CustomClaims{
+	//	userId,
+	//	username,
+	//	jwt2.StandardClaims{
+	//		ExpiresAt: expireTime.Unix(),
+	//		Issuer:    "iris",
+	//	},
+	//})
 	// Sign and get the complete encoded token as a string using the secret
 	return token.SignedString(mySecret)
 }

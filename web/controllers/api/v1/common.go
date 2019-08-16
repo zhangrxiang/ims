@@ -2,7 +2,9 @@ package v1
 
 import (
 	"fmt"
+	"github.com/iris-contrib/middleware/jwt"
 	"github.com/kataras/iris"
+	"simple-ims/models"
 )
 
 type Message struct {
@@ -32,4 +34,24 @@ func response(ctx iris.Context, success bool, errMsg string, data interface{}) {
 		return
 	}
 	return
+}
+
+func authUser(ctx iris.Context) (*models.UserModel, error) {
+
+	user := ctx.Values().Get("user")
+	if user != nil {
+		return user.(*models.UserModel), nil
+	}
+	token := ctx.Values().Get("jwt").(*jwt.Token)
+	claims := token.Claims.(jwt.MapClaims)
+	model := &models.UserModel{
+		ID: int(claims["userId"].(float64)),
+	}
+	userModel, err := model.FindByID()
+	if err != nil {
+		return nil, err
+	}
+	ctx.Values().Set("user", userModel)
+
+	return userModel, nil
 }

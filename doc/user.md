@@ -42,11 +42,13 @@ type UserModel struct {
   "success": true,
   "err_msg": "",
   "data": {
-    "timestamp": 1565571887,
+    "timestamp": 1565923787,
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJuYW1lIjoiYWRtaW4iLCJleHAiOjE1NjYwMTAxODcsImlzcyI6ImlyaXMifQ.BEkfqhgvj8jqOgIkCQYHLY0cQI0anA5_DrM7ybRALlU",
+    "token_type": "Bearer",
     "user": {
       "id": 1,
-      "username": "zing",
-      "password": "123456",
+      "username": "admin",
+      "password": "******",
       "role": "",
       "phone": "",
       "mail": ""
@@ -62,7 +64,10 @@ type UserModel struct {
 `get`
 
 #### 参数:  
-
+##### header
+```text
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJuYW1lIjoiYWRtaW4iLCJleHAiOjE1NjYwMTAxODcsImlzcyI6ImlyaXMifQ.BEkfqhgvj8jqOgIkCQYHLY0cQI0anA5_DrM7ybRALlU
+```
 #### 返回:
 
 ```json
@@ -132,7 +137,12 @@ phone:18800000000
 #### 方法
 `post`
 
-#### 参数:  
+#### 参数:
+
+##### header
+```text
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJuYW1lIjoiYWRtaW4iLCJleHAiOjE1NjYwMTAxODcsImlzcyI6ImlyaXMifQ.BEkfqhgvj8jqOgIkCQYHLY0cQI0anA5_DrM7ybRALlU
+```
 ```text
 id:16
 username:admin1
@@ -168,6 +178,12 @@ phone:18800000000
 `get`
 
 #### 参数:  
+
+##### header
+```text
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJuYW1lIjoiYWRtaW4iLCJleHAiOjE1NjYwMTAxODcsImlzcyI6ImlyaXMifQ.BEkfqhgvj8jqOgIkCQYHLY0cQI0anA5_DrM7ybRALlU
+```
+
 ```text
 id:16
 ```

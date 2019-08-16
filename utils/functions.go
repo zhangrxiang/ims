@@ -6,6 +6,7 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 )
@@ -64,4 +65,8 @@ func Md5Str(value string) string {
 	instance := md5.New()
 	instance.Write([]byte(value))
 	return hex.EncodeToString(instance.Sum(nil))
+}
+
+func FileName(p string, version string) string {
+	return strings.TrimSuffix(path.Base(p), path.Ext(p)) + "-" + version + "-" + path.Ext(p)
 }

@@ -36,18 +36,21 @@ func (web *Web) Init() {
 	web.app.Logger().SetOutput(newLogFile())
 	web.app.Logger().SetLevel("debug")
 	web.app.Use(logger.New())
-	web.app.SPA(web.app.StaticHandler("./www", false, false))
 	web.app.Configure(iris.WithConfiguration(iris.Configuration{
 		Charset: "UTF-8",
 	}))
+
+	tmpl := iris.HTML("./www", ".html")
+	tmpl.Reload(true)
+	web.app.RegisterView(tmpl)
+	web.app.SPA(web.app.StaticHandler("./www", false, false))
+
+	models.GetDBInstance()
 
 	//ping
 	web.app.Get("/ping", func(context context.Context) {
 		_, _ = context.WriteString("PONG")
 	})
-
-	models.GetDBInstance()
-
 	//用户
 	web.app.Get(v1Api+"/user/login", v1.UserLogin)
 	user := web.app.Party(v1Api + "/user")
@@ -77,9 +80,16 @@ func (web *Web) Init() {
 		resource.Get("/lists", v1.ResourceLists)
 		resource.Get("/delete", v1.ResourceDelete)
 		resource.Post("/update", v1.ResourceUpdate)
+		resource.Get(v1Api+"/resource/download", v1.ResourceDownload)
+		resource.Get(v1Api+"/resource/group-lists", v1.ResourceGroupLists)
 	}
-	web.app.Get(v1Api+"/resource/download", v1.ResourceDownload)
-	web.app.Get(v1Api+"/resource/group-lists", v1.ResourceGroupLists)
+
+	//历史版本
+	resourceHistory := web.app.Party(v1Api + "/resource-history")
+	{
+		resourceHistory.Use(middleware.JWT)
+		resourceHistory.Get("/lists", v1.ResourceHistoryLists)
+	}
 
 	//web.app.OnErrorCode(iris.StatusNotFound, func(ctx iris.Context) {
 	//	_, _ = ctx.JSON(iris.Map{
@@ -91,7 +101,7 @@ func (web *Web) Init() {
 
 	go func() {
 		err := web.app.Run(
-			iris.Addr(":8081"),
+			iris.Addr(":80"),
 			iris.WithoutServerError(iris.ErrServerClosed),
 			iris.WithOptimizations,
 		)

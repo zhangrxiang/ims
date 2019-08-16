@@ -15,8 +15,6 @@ type DB struct {
 }
 
 //唯一冲突
-const UniqueFailed = "UNIQUE constraint failed"
-
 var (
 	RecordExists   = errors.New("数据记录已经存在")
 	NoRecordExists = errors.New("无数据记录存在")
@@ -41,6 +39,7 @@ func (db *DB) Init() {
 		(*UserModel)(nil),
 		(*ResourceModel)(nil),
 		(*ResourceTypeModel)(nil),
+		(*ResourceHistoryModel)(nil),
 	} {
 		db.DB.AutoMigrate(v)
 	}
