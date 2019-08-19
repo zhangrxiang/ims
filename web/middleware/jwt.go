@@ -5,6 +5,8 @@ import (
 	"github.com/iris-contrib/middleware/jwt"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
+	"net/http"
+	"simple-ims/models"
 	"time"
 )
 
@@ -24,7 +26,7 @@ var JWT = jwt.New(jwt.Config{
 	SigningMethod: jwt.SigningMethodHS256,
 	ErrorHandler: func(context context.Context, err error) {
 		if err != nil {
-			//context.StatusCode(http.StatusUnauthorized)
+			context.StatusCode(http.StatusUnauthorized)
 			_, _ = context.JSON(iris.Map{
 				"success": false,
 				"err_msg": "token 验证失败:" + err.Error(),
@@ -36,12 +38,13 @@ var JWT = jwt.New(jwt.Config{
 	},
 }).Serve
 
-func GenerateToken(userId int, username string) (string, error) {
+func GenerateToken(user *models.UserModel) (string, error) {
 	nowTime := time.Now()
 	expireTime := nowTime.Add(time.Duration(24) * time.Hour)
 	token := jwt.NewTokenWithClaims(jwt.SigningMethodHS256, jwt2.MapClaims{
-		"userId":   userId,
-		"username": username,
+		"userId":   user.ID,
+		"username": user.Username,
+		"role":     user.Role,
 		"exp":      expireTime.Unix(),
 		"iss":      "iris",
 	})

@@ -48,7 +48,7 @@ func UserLogin(ctx iris.Context) {
 		return
 	}
 
-	token, err := middleware.GenerateToken(model.ID, model.Username)
+	token, err := middleware.GenerateToken(model)
 
 	if err != nil {
 		response(ctx, false, "生成token失败"+err.Error(), nil)

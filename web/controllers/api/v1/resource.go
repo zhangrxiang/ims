@@ -274,7 +274,11 @@ func ResourceGroupLists(ctx iris.Context) {
 
 	typeModel := &models.ResourceTypeModel{}
 	allType, err := typeModel.All()
-
+	response(ctx, true, "", iris.Map{
+		"resources": "",
+		"timestamp": time.Now().Unix(),
+	})
+	return
 	if err == nil && allType != nil {
 		resourceModel := &models.ResourceModel{}
 		var data []map[string]interface{}

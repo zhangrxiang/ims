@@ -55,6 +55,7 @@ func (web *Web) Init() {
 	web.app.Get(v1Api+"/user/login", v1.UserLogin)
 	user := web.app.Party(v1Api + "/user")
 	user.Use(middleware.JWT)
+	user.Use(middleware.Auth)
 	{
 		user.Get("/lists", v1.UserLists)
 		user.Post("/register", v1.UserRegister)
@@ -75,19 +76,21 @@ func (web *Web) Init() {
 	//资源
 	resource := web.app.Party(v1Api + "/resource")
 	resource.Use(middleware.JWT)
+	resource.Use(middleware.Auth)
 	{
 		resource.Post("/add", v1.ResourceAdd)
 		resource.Get("/lists", v1.ResourceLists)
 		resource.Get("/delete", v1.ResourceDelete)
 		resource.Post("/update", v1.ResourceUpdate)
-		resource.Get(v1Api+"/resource/download", v1.ResourceDownload)
-		resource.Get(v1Api+"/resource/group-lists", v1.ResourceGroupLists)
+		resource.Get("/download", v1.ResourceDownload)
+		resource.Get("/group-lists", v1.ResourceGroupLists)
 	}
 
 	//历史版本
 	resourceHistory := web.app.Party(v1Api + "/resource-history")
+	resourceHistory.Use(middleware.JWT)
+	resourceHistory.Use(middleware.Auth)
 	{
-		resourceHistory.Use(middleware.JWT)
 		resourceHistory.Get("/lists", v1.ResourceHistoryLists)
 	}
 
