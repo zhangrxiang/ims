@@ -16,6 +16,7 @@ func ResourceAdd(ctx iris.Context) {
 	_type := ctx.FormValue("type")
 	version := ctx.FormValue("version")
 	desc := ctx.FormValue("desc")
+	logStr := ctx.FormValue("log")
 
 	user, err := authUser(ctx)
 	if err != nil {
@@ -95,6 +96,7 @@ func ResourceAdd(ctx iris.Context) {
 		Path:       model.Path,
 		Hash:       model.Hash,
 		CreateAt:   model.CreateAt,
+		Log:        logStr,
 	}
 	_, err = resourceHistoryModel.Insert()
 	if err != nil {
@@ -151,6 +153,7 @@ func ResourceUpdate(ctx iris.Context) {
 	_type := ctx.FormValue("type")
 	version := ctx.FormValue("version")
 	desc := ctx.FormValue("desc")
+	logStr := ctx.FormValue("log")
 
 	if name == "" || _type == "" {
 		response(ctx, false, "请输入资源名称,选择资源类型", nil)
@@ -227,6 +230,7 @@ func ResourceUpdate(ctx iris.Context) {
 		Path:       model.Path,
 		Hash:       model.Hash,
 		CreateAt:   model.CreateAt,
+		Log:        logStr,
 	}
 	_, err = resourceHistoryModel.Insert()
 	if err != nil {

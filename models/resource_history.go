@@ -8,10 +8,11 @@ import (
 type ResourceHistoryModel struct {
 	ID         int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
 	ResourceID int       `json:"resource_id" gorm:"not null"`
+	Version    string    `json:"version" gorm:"not null"`
+	Log        string    `json:"log"`
 	File       string    `json:"file"`
 	Path       string    `json:"path"`
 	Hash       string    `json:"hash"`
-	Version    string    `json:"version" gorm:"not null"`
 	Download   int       `json:"download"`
 	CreateAt   time.Time `json:"create_at"`
 }
