@@ -1,11 +1,13 @@
 package models
 
 import (
+	"github.com/jinzhu/gorm"
 	"time"
 )
 
 type ResourceModel struct {
 	ID       int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
+	UserId   int       `json:"user_id"`
 	Name     string    `json:"name" gorm:"not null"`
 	Type     int       `json:"type" gorm:"not null"`
 	File     string    `json:"file"`
@@ -13,8 +15,8 @@ type ResourceModel struct {
 	Hash     string    `json:"hash"`
 	Version  string    `json:"version" gorm:"not null"`
 	Desc     string    `json:"desc" gorm:"not null"`
+	Download int       `json:"download"`
 	CreateAt time.Time `json:"create_at"`
-	UserId   int       `json:"user_id"`
 }
 
 func (r *ResourceModel) Find() (*ResourceModel, error) {
@@ -44,9 +46,6 @@ func (r *ResourceModel) FindByHash(h string) (*ResourceModel, error) {
 func (r *ResourceModel) FindByType(t int) ([]ResourceModel, error) {
 	var resources []ResourceModel
 	model := db.DB.Where("type = ?", t).Find(&resources)
-	if model.RowsAffected == 0 {
-		return nil, NoRecordExists
-	}
 	return resources, model.Error
 }
 
@@ -77,5 +76,10 @@ func (r *ResourceModel) Update() (*ResourceModel, error) {
 	if model.RowsAffected == 0 {
 		return nil, NoRecordExists
 	}
+	return model.Value.(*ResourceModel), model.Error
+}
+
+func (r *ResourceModel) Increment() (*ResourceModel, error) {
+	model := db.DB.Model(r).Update("download", gorm.Expr("download + 1"))
 	return model.Value.(*ResourceModel), model.Error
 }

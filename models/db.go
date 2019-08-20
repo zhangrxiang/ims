@@ -40,6 +40,7 @@ func (db *DB) Init() {
 		(*ResourceModel)(nil),
 		(*ResourceTypeModel)(nil),
 		(*ResourceHistoryModel)(nil),
+		(*DownloadModel)(nil),
 	} {
 		db.DB.AutoMigrate(v)
 	}

@@ -17,7 +17,7 @@ func ResourceHistoryLists(ctx iris.Context) {
 	model := models.ResourceHistoryModel{
 		ResourceID: resourceId,
 	}
-	historyModel, err := model.FindByResourceId()
+	historyModel, err := model.FindBy()
 	if err != nil {
 		response(ctx, false, "获取历史版本失败", nil)
 		return

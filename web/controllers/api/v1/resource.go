@@ -74,7 +74,6 @@ func ResourceAdd(ctx iris.Context) {
 		}
 		resourceModel.File = info.Filename
 		resourceModel.Path = uploadDir + utils.FileName(info.Filename, version)
-		resourceModel.CreateAt = time.Now()
 		err = utils.CopyFile(resourceModel.Path, file)
 		if err != nil {
 			response(ctx, false, "保存文件失败:"+err.Error(), nil)
@@ -82,11 +81,9 @@ func ResourceAdd(ctx iris.Context) {
 		}
 	}
 
-	transaction := models.GetDBInstance().DB.Begin()
-
+	resourceModel.CreateAt = time.Now()
 	model, err := resourceModel.Insert()
 	if err != nil {
-		transaction.Rollback()
 		response(ctx, false, "添加资源失败:"+err.Error(), nil)
 		return
 	}
@@ -97,15 +94,13 @@ func ResourceAdd(ctx iris.Context) {
 		Version:    model.Version,
 		Path:       model.Path,
 		Hash:       model.Hash,
+		CreateAt:   model.CreateAt,
 	}
 	_, err = resourceHistoryModel.Insert()
 	if err != nil {
-		transaction.Rollback()
 		response(ctx, false, "保存历史资源版本失败:"+err.Error(), nil)
 		return
 	}
-
-	transaction.Commit()
 
 	response(ctx, true, "保存文件成功", iris.Map{
 		"resource": model,
@@ -231,6 +226,7 @@ func ResourceUpdate(ctx iris.Context) {
 		Version:    model.Version,
 		Path:       model.Path,
 		Hash:       model.Hash,
+		CreateAt:   model.CreateAt,
 	}
 	_, err = resourceHistoryModel.Insert()
 	if err != nil {
@@ -307,18 +303,46 @@ func ResourceGroupLists(ctx iris.Context) {
 
 //下载文件
 func ResourceDownload(ctx iris.Context) {
-	p := ctx.URLParam("path")
-	f := ctx.URLParam("file")
 
-	if p == "" || f == "" {
-		response(ctx, false, "文件路径不能为空", nil)
+	idStr := ctx.URLParam("id")
+	version := ctx.URLParam("version")
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil || version == "" {
+		response(ctx, false, "文件ID和版本不能为空", nil)
 		return
 	}
 
-	err := ctx.SendFile(p, f)
-
+	historyModel, err := (&models.ResourceHistoryModel{
+		ResourceID: id,
+		Version:    version,
+	}).FirstBy()
 	if err != nil {
-		response(ctx, false, "文件不存在", nil)
+		response(ctx, false, "当前资源不存在", nil)
+		return
+	}
+
+	_, err = historyModel.Increment()
+	if err != nil {
+		response(ctx, false, "更新资源下载量失败", nil)
+		return
+	}
+
+	userModel, _ := authUser(ctx)
+	downloadModel := models.DownloadModel{
+		ResourceId: id,
+		UserId:     userModel.ID,
+		CreateAt:   time.Now(),
+	}
+	_, err = downloadModel.Insert()
+	if err != nil {
+		response(ctx, false, "添加下载资源记录失败", nil)
+		return
+	}
+
+	err = ctx.SendFile(historyModel.Path, utils.FileName(historyModel.File, historyModel.Version))
+	if err != nil {
+		response(ctx, false, "文件不存在"+err.Error(), nil)
 	}
 
 }
