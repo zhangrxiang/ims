@@ -22,7 +22,12 @@ var JWT = jwt.New(jwt.Config{
 	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 		return mySecret, nil
 	},
-	Expiration:    true,
+	Expiration: true,
+	Extractor: jwt.FromFirst(func(ctx context.Context) (string, error) {
+		return jwt.FromAuthHeader(ctx)
+	}, jwt.FromParameter("token"), func(ctx context.Context) (string, error) {
+		return ctx.PostValue("token"), nil
+	}),
 	SigningMethod: jwt.SigningMethodHS256,
 	ErrorHandler: func(context context.Context, err error) {
 		if err != nil {

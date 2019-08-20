@@ -274,31 +274,26 @@ func ResourceGroupLists(ctx iris.Context) {
 
 	typeModel := &models.ResourceTypeModel{}
 	allType, err := typeModel.All()
-	response(ctx, true, "", iris.Map{
-		"resources": "",
-		"timestamp": time.Now().Unix(),
-	})
-	return
-	if err == nil && allType != nil {
+	if err != nil {
+		response(ctx, false, "获取资源类型列表失败:"+err.Error(), nil)
+		return
+	}
+
+	if len(allType) > 0 {
 		resourceModel := &models.ResourceModel{}
 		var data []map[string]interface{}
 		for _, t := range allType {
 			model, err := resourceModel.FindByType(t.ID)
-			if model != nil && err == nil {
+			if err != nil {
+				response(ctx, false, "获取资源失败:"+err.Error(), nil)
+				return
+			}
+			if len(model) > 0 {
 				resource := make(map[string]interface{})
 				resource["name"] = t.Name
 				resource["desc"] = t.Desc
 				resource["lists"] = model
 				data = append(data, resource)
-			}
-			if err == models.NoRecordExists {
-				response(ctx, true, "无可用资源", nil)
-				return
-			}
-
-			if err != nil {
-				response(ctx, false, "获取资源失败:"+err.Error(), nil)
-				return
 			}
 		}
 		response(ctx, true, "", iris.Map{
@@ -307,15 +302,7 @@ func ResourceGroupLists(ctx iris.Context) {
 		})
 		return
 	}
-	if err == models.NoRecordExists {
-		response(ctx, true, "请先添加资源分类", nil)
-		return
-	}
-	if err != nil {
-		response(ctx, false, "获取资源类型列表失败:"+err.Error(), nil)
-		return
-	}
-
+	response(ctx, true, "请先添加资源分类", nil)
 }
 
 //下载文件
