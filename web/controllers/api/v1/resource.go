@@ -207,46 +207,32 @@ func ResourceUpdate(ctx iris.Context) {
 		}
 		resourceModel.File = info.Filename
 		resourceModel.Path = uploadDir + utils.FileName(info.Filename, version)
-		resourceModel.CreateAt = time.Now()
 		err = utils.CopyFile(resourceModel.Path, file)
 		if err != nil {
 			response(ctx, false, "保存文件失败:"+err.Error(), nil)
 			return
 		}
 	}
-
-	model, err := resourceModel.Find()
+	resourceModel.CreateAt = time.Now()
+	model, err := resourceModel.Update()
 	if err != nil {
-		response(ctx, false, "查找资源失败:"+err.Error(), nil)
+		response(ctx, false, "更新资源失败:"+err.Error(), nil)
 		return
 	}
-
-	transaction := models.GetDBInstance().DB.Begin()
-
 	resourceHistoryModel := &models.ResourceHistoryModel{
-		ResourceID: model.ID,
-		File:       model.File,
-		Version:    model.Version,
-		Path:       model.Path,
-		Hash:       model.Hash,
-		CreateAt:   model.CreateAt,
+		ResourceID: resourceModel.ID,
+		File:       resourceModel.File,
+		Version:    resourceModel.Version,
+		Path:       resourceModel.Path,
+		Hash:       resourceModel.Hash,
+		CreateAt:   resourceModel.CreateAt,
 		Log:        logStr,
 	}
 	_, err = resourceHistoryModel.Insert()
 	if err != nil {
-		transaction.Rollback()
 		response(ctx, false, "保存历史资源版本失败:"+err.Error(), nil)
 		return
 	}
-	model, err = resourceModel.Update()
-	if err != nil {
-		transaction.Rollback()
-		response(ctx, false, "更新资源失败:"+err.Error(), nil)
-		return
-	}
-
-	transaction.Commit()
-
 	response(ctx, true, "更新资源成功:", iris.Map{
 		"resource": model,
 	})
@@ -321,6 +307,7 @@ func ResourceDownload(ctx iris.Context) {
 		ResourceID: id,
 		Version:    version,
 	}).FirstBy()
+
 	if err != nil {
 		response(ctx, false, "当前资源不存在", nil)
 		return
@@ -334,9 +321,9 @@ func ResourceDownload(ctx iris.Context) {
 
 	userModel, _ := authUser(ctx)
 	downloadModel := models.DownloadModel{
-		ResourceId: id,
-		UserId:     userModel.ID,
-		CreateAt:   time.Now(),
+		RHId:     historyModel.ID,
+		UserId:   userModel.ID,
+		CreateAt: time.Now(),
 	}
 	_, err = downloadModel.Insert()
 	if err != nil {

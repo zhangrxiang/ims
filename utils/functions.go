@@ -68,5 +68,5 @@ func Md5Str(value string) string {
 }
 
 func FileName(p string, version string) string {
-	return strings.TrimSuffix(path.Base(p), path.Ext(p)) + "-" + version + "-" + path.Ext(p)
+	return strings.TrimSuffix(path.Base(p), path.Ext(p)) + "-" + version + path.Ext(p)
 }

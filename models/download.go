@@ -6,10 +6,10 @@ import (
 )
 
 type DownloadModel struct {
-	ID         int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
-	UserId     int       `json:"user_id"`
-	ResourceId int       `json:"resource_id"`
-	CreateAt   time.Time `json:"create_at"`
+	ID       int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
+	UserId   int       `json:"user_id"`
+	RHId     int       `json:"rh_id"`
+	CreateAt time.Time `json:"create_at"`
 }
 
 func (dm *DownloadModel) Find() (*DownloadModel, error) {

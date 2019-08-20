@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
+	"log"
 	"time"
 )
 
@@ -18,8 +19,9 @@ type ResourceHistoryModel struct {
 }
 
 func (rh *ResourceHistoryModel) Increment() (*ResourceHistoryModel, error) {
+	log.Println(rh)
 	model := db.DB.Model(rh).Update("download", gorm.Expr("download  + 1"))
-	return model.Value.(*ResourceHistoryModel), model.Error
+	return nil, model.Error
 }
 
 func (rh *ResourceHistoryModel) Insert() (*ResourceHistoryModel, error) {
@@ -27,23 +29,16 @@ func (rh *ResourceHistoryModel) Insert() (*ResourceHistoryModel, error) {
 	return model.Value.(*ResourceHistoryModel), model.Error
 }
 
-func (rh *ResourceHistoryModel) FindByResourceId() ([]ResourceHistoryModel, error) {
-	var resources []ResourceHistoryModel
-	model := db.DB.Order("id DESC").Find(&resources, "resource_id = ?", rh.ResourceID)
-	return resources, model.Error
-}
-
+//多数据查询
 func (rh *ResourceHistoryModel) FirstBy() (*ResourceHistoryModel, error) {
 	var resource ResourceHistoryModel
-	model := db.DB.Order("id DESC").Where(rh).First(&resource)
-	if model.RowsAffected == 0 {
-		return nil, nil
-	}
+	model := db.DB.Where(rh).First(&resource)
 	return &resource, model.Error
 }
 
-func (rh *ResourceHistoryModel) FindBy() ([]ResourceHistoryModel, error) {
+//单数据查询
+func (rh *ResourceHistoryModel) FindBy() (*[]ResourceHistoryModel, error) {
 	var resources []ResourceHistoryModel
 	model := db.DB.Order("id DESC").Find(&resources, "resource_id = ?", rh.ResourceID)
-	return resources, model.Error
+	return &resources, model.Error
 }
