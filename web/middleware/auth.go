@@ -24,7 +24,11 @@ func NewAuth() *Authenticate {
 			"resource-history": "*",
 		},
 		OrdinaryRoute: map[string]interface{}{
-			"resource": []string{"/resource/group-lists", "/resource/download"},
+			"resource": []string{
+				"/resource-history/lists",
+				"/resource/group-lists",
+				"/resource/download",
+			},
 		},
 	}
 }
@@ -47,7 +51,7 @@ func (a *Authenticate) Serve(ctx context.Context) {
 			}
 		}
 	}
-	ctx.StatusCode(http.StatusUnauthorized)
+	ctx.StatusCode(http.StatusForbidden)
 	_, _ = ctx.JSON(iris.Map{
 		"success": false,
 		"err_msg": "当前操作没有权限",

@@ -35,16 +35,32 @@ func (db *DB) Init() {
 		panic("failed to connect database")
 	}
 
-	for _, v := range []interface{}{
+	for index, v := range []interface{}{
 		(*UserModel)(nil),
 		(*ResourceModel)(nil),
 		(*ResourceTypeModel)(nil),
 		(*ResourceHistoryModel)(nil),
 		(*DownloadModel)(nil),
 	} {
+		if !db.DB.HasTable(v) {
+			db.DB.CreateTable(v)
+			if index == 0 {
+				db.DB.Create(&UserModel{
+					ID:       1,
+					Username: "admin",
+					Password: "123456",
+					Role:     "admin",
+				})
+				db.DB.Create(&UserModel{
+					ID:       2,
+					Username: "atian",
+					Password: "123456",
+					Role:     "downloader",
+				})
+			}
+		}
 		db.DB.AutoMigrate(v)
 	}
-
 }
 
 func (db *DB) Close() {

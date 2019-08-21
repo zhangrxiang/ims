@@ -148,24 +148,24 @@ func ResourceDelete(ctx iris.Context) {
 
 //更新资源
 func ResourceUpdate(ctx iris.Context) {
-	_id := ctx.FormValue("id")
+	idStr := ctx.FormValue("id")
 	name := ctx.FormValue("name")
-	_type := ctx.FormValue("type")
+	typeStr := ctx.FormValue("type")
 	version := ctx.FormValue("version")
 	desc := ctx.FormValue("desc")
 	logStr := ctx.FormValue("log")
 
-	if name == "" || _type == "" {
+	if name == "" || typeStr == "" {
 		response(ctx, false, "请输入资源名称,选择资源类型", nil)
 		return
 	}
 
-	id, err := strconv.Atoi(_id)
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		response(ctx, false, "资源ID格式不合法:"+err.Error(), nil)
 		return
 	}
-	t, err := strconv.Atoi(_type)
+	t, err := strconv.Atoi(typeStr)
 	if err != nil {
 		response(ctx, false, "资源类型格式不合法:"+err.Error(), nil)
 		return

@@ -29,6 +29,7 @@ func (p *Program) Init(env svc.Environment) error {
 func (p *Program) Start() error {
 	log.Println("服务正在运行...")
 
+	p.wg.Add(1)
 	web.NewOnceWeb()
 
 	p.quit = make(chan struct{})

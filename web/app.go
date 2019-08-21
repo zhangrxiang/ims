@@ -34,7 +34,7 @@ func NewOnceWeb() *Web {
 
 func (web *Web) Init() {
 	web.app.Logger().SetOutput(newLogFile())
-	web.app.Logger().SetLevel("debug")
+	web.app.Logger().SetLevel("warn")
 	web.app.Use(logger.New())
 	web.app.Configure(iris.WithConfiguration(iris.Configuration{
 		Charset: "UTF-8",
@@ -66,6 +66,7 @@ func (web *Web) Init() {
 	//资源分类
 	resourceType := web.app.Party(v1Api + "/resource-type")
 	resourceType.Use(middleware.JWT)
+	resourceType.Use(middleware.Auth)
 	{
 		resourceType.Post("/add", v1.ResourceTypeAdd)
 		resourceType.Get("/lists", v1.ResourceTypeLists)
