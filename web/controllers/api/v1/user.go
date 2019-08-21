@@ -143,7 +143,7 @@ func UserDelete(ctx iris.Context) {
 		response(ctx, false, "删除用户失败:"+err.Error(), nil)
 		return
 	}
-	response(ctx, false, "删除用户成功", nil)
+	response(ctx, true, "删除用户成功", nil)
 }
 
 //用户更新
