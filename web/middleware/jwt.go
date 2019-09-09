@@ -12,12 +12,6 @@ import (
 
 var mySecret = []byte("atian-2019")
 
-type CustomClaims struct {
-	UserID   int
-	Username string
-	jwt2.StandardClaims
-}
-
 var JWT = jwt.New(jwt.Config{
 	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 		return mySecret, nil
@@ -50,17 +44,9 @@ func GenerateToken(user *models.UserModel) (string, error) {
 		"userId":   user.ID,
 		"username": user.Username,
 		"role":     user.Role,
+		"user":     user,
 		"exp":      expireTime.Unix(),
 		"iss":      "iris",
 	})
-	//token := jwt.NewTokenWithClaims(jwt.SigningMethodHS256, CustomClaims{
-	//	userId,
-	//	username,
-	//	jwt2.StandardClaims{
-	//		ExpiresAt: expireTime.Unix(),
-	//		Issuer:    "iris",
-	//	},
-	//})
-	// Sign and get the complete encoded token as a string using the secret
 	return token.SignedString(mySecret)
 }

@@ -36,6 +36,18 @@ func response(ctx iris.Context, success bool, errMsg string, data interface{}) {
 	return
 }
 
+func auth(ctx iris.Context) *models.UserModel {
+	user := ctx.Values().Get("user").(map[string]interface{})
+	return &models.UserModel{
+		ID:       int(user["id"].(float64)),
+		Username: user["username"].(string),
+		Password: user["password"].(string),
+		Role:     user["role"].(string),
+		Phone:    user["phone"].(string),
+		Mail:     user["mail"].(string),
+	}
+}
+
 func authUser(ctx iris.Context) (*models.UserModel, error) {
 
 	user := ctx.Values().Get("user")

@@ -95,6 +95,19 @@ func (web *Web) Init() {
 		resourceHistory.Get("/lists", v1.ResourceHistoryLists)
 	}
 
+	//项目
+	project := web.app.Party(v1Api + "/project")
+	project.Use(middleware.JWT)
+	project.Use(middleware.Auth)
+	{
+		project.Post("/add", v1.ProjectAdd)
+		//project.Get("/lists", v1.ResourceLists)
+		//project.Get("/delete", v1.ResourceDelete)
+		//project.Post("/update", v1.ResourceUpdate)
+		//project.Get("/download", v1.ResourceDownload)
+		//project.Get("/group-lists", v1.ResourceGroupLists)
+	}
+
 	//web.app.OnErrorCode(iris.StatusNotFound, func(ctx iris.Context) {
 	//	_, _ = ctx.JSON(iris.Map{
 	//		"success": false,

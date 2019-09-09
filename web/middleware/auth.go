@@ -37,6 +37,7 @@ func (a *Authenticate) Serve(ctx context.Context) {
 	currentRoute := strings.TrimPrefix(ctx.GetCurrentRoute().Path(), "/api/v1")
 	token := ctx.Values().Get("jwt").(*jwt.Token)
 	claims := token.Claims.(jwt.MapClaims)
+	ctx.Values().Set("user", claims["user"])
 	switch claims["role"] {
 	case "admin":
 		ctx.Next()

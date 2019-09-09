@@ -48,6 +48,7 @@ func UserLogin(ctx iris.Context) {
 		return
 	}
 
+	model.Password = strings.Repeat("*", len(model.Password))
 	token, err := middleware.GenerateToken(model)
 
 	if err != nil {
@@ -55,7 +56,6 @@ func UserLogin(ctx iris.Context) {
 		return
 	}
 
-	model.Password = strings.Repeat("*", len(model.Password))
 	response(ctx, true, "", iris.Map{
 		"user":       model,
 		"token":      token,
