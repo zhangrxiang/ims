@@ -42,6 +42,7 @@ func (db *DB) Init() {
 		(*ResourceHistoryModel)(nil),
 		(*DownloadModel)(nil),
 		(*ProjectModel)(nil),
+		(*ProjectHistoryModel)(nil),
 	} {
 		if !db.DB.HasTable(v) {
 			db.DB.CreateTable(v)

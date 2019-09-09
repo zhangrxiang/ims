@@ -29,14 +29,14 @@ func (rh *ResourceHistoryModel) Insert() (*ResourceHistoryModel, error) {
 	return model.Value.(*ResourceHistoryModel), model.Error
 }
 
-//多数据查询
+//单数据查询
 func (rh *ResourceHistoryModel) FirstBy() (*ResourceHistoryModel, error) {
 	var resource ResourceHistoryModel
 	model := db.DB.Where(rh).First(&resource)
 	return &resource, model.Error
 }
 
-//单数据查询
+//多数据查询
 func (rh *ResourceHistoryModel) FindBy() (*[]ResourceHistoryModel, error) {
 	var resources []ResourceHistoryModel
 	model := db.DB.Order("id DESC").Find(&resources, "resource_id = ?", rh.ResourceID)

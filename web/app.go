@@ -101,7 +101,8 @@ func (web *Web) Init() {
 	project.Use(middleware.Auth)
 	{
 		project.Post("/add", v1.ProjectAdd)
-		//project.Get("/lists", v1.ResourceLists)
+		project.Post("/upgrade", v1.ProjectUpgrade)
+		project.Get("/lists", v1.ProjectLists)
 		//project.Get("/delete", v1.ResourceDelete)
 		//project.Post("/update", v1.ResourceUpdate)
 		//project.Get("/download", v1.ResourceDownload)
