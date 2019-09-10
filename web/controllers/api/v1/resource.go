@@ -18,16 +18,6 @@ func ResourceAdd(ctx iris.Context) {
 	desc := ctx.FormValue("desc")
 	logStr := ctx.FormValue("log")
 
-	user, err := authUser(ctx)
-	if err != nil {
-		response(ctx, false, "请登录", nil)
-		return
-	}
-	if user.Role != "admin" {
-		response(ctx, false, "只有管理员才能添加资源", nil)
-		return
-	}
-
 	if name == "" || _type == "" {
 		response(ctx, false, "请输入资源名称,选择资源类型", nil)
 		return
@@ -43,7 +33,7 @@ func ResourceAdd(ctx iris.Context) {
 		Type:    t,
 		Version: version,
 		Desc:    desc,
-		UserId:  user.ID,
+		UserId:  auth(ctx).ID,
 	}
 
 	file, info, err := ctx.FormFile("file")

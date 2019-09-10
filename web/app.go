@@ -103,10 +103,17 @@ func (web *Web) Init() {
 		project.Post("/add", v1.ProjectAdd)
 		project.Post("/upgrade", v1.ProjectUpgrade)
 		project.Get("/lists", v1.ProjectLists)
-		//project.Get("/delete", v1.ResourceDelete)
+		project.Get("/delete", v1.ProjectDelete)
 		//project.Post("/update", v1.ResourceUpdate)
-		//project.Get("/download", v1.ResourceDownload)
+		project.Get("/download", v1.ProjectDownload)
 		//project.Get("/group-lists", v1.ResourceGroupLists)
+	}
+
+	projectHistory := web.app.Party(v1Api + "/project-history")
+	projectHistory.Use(middleware.JWT)
+	projectHistory.Use(middleware.Auth)
+	{
+		projectHistory.Get("/lists", v1.ProjectHistoryLists)
 	}
 
 	//web.app.OnErrorCode(iris.StatusNotFound, func(ctx iris.Context) {

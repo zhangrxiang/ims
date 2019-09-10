@@ -11,6 +11,21 @@ type ProjectModel struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+//根据ID删除
+func (p *ProjectModel) DeleteByIds(ids []int) (*ProjectModel, error) {
+	model := db.DB.Where(ids).Delete(p)
+	if model.RowsAffected == 0 {
+		return nil, NoRecordExists
+	}
+	return model.Value.(*ProjectModel), model.Error
+}
+
+func (p *ProjectModel) FirstBy() (*ProjectModel, error) {
+	var project ProjectModel
+	model := db.DB.Order("id DESC").Where(&p).First(&project)
+	return &project, model.Error
+}
+
 //多数据查询
 func (p *ProjectModel) FindBy() (*[]ProjectModel, error) {
 	var projects []ProjectModel
