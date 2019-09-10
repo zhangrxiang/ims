@@ -2,7 +2,6 @@ package v1
 
 import (
 	"archive/zip"
-	"fmt"
 	"github.com/kataras/iris"
 	"io/ioutil"
 	"log"
@@ -13,6 +12,7 @@ import (
 	"time"
 )
 
+//项目删除
 func ProjectDelete(ctx iris.Context) {
 	id := ctx.FormValue("id")
 	ids := utils.StrToIntAlice(id, ",")
@@ -42,7 +42,7 @@ func ProjectLists(ctx iris.Context) {
 		models.ProjectModel
 		models.ProjectHistoryModel
 	}
-	var row []item
+	var list []item
 	pm := models.ProjectModel{}
 	model, err := pm.FindBy()
 	if err != nil {
@@ -53,15 +53,14 @@ func ProjectLists(ctx iris.Context) {
 		phm := models.ProjectHistoryModel{
 			ProjectId: v.ID,
 		}
-		//todo
 		first, err := phm.First()
 		if err != nil {
 			response(ctx, true, "获取项目版本失败:"+err.Error(), nil)
 			return
 		}
-		row = append(row, item{v, *first})
+		list = append(list, item{v, *first})
 	}
-	response(ctx, true, "获取项目列表成功", row)
+	response(ctx, true, "获取项目列表成功", list)
 }
 
 //添加项目版本
@@ -78,25 +77,12 @@ func ProjectUpgrade(ctx iris.Context) {
 		response(ctx, false, "请输入版本号和日志,选择对应资源", nil)
 		return
 	}
-	phm := models.ProjectHistoryModel{
-		ProjectId: projectId,
-		Version:   version,
-		Log:       logStr,
-		RHIds:     RHIds,
-		Hash:      utils.Md5Str(string(projectId) + version + logStr + RHIds),
-	}
-	model, err := phm.Insert()
-	if err != nil {
-		response(ctx, false, "保存项目版本失败:"+err.Error(), nil)
-		return
-	}
-	//var sourcePath []string
 	pm := models.ProjectModel{
 		ID: projectId,
 	}
 	projectModel, err := pm.FirstBy()
 	if err != nil {
-		log.Println(err)
+		response(ctx, false, "获取当前项目详情失败:"+err.Error(), nil)
 		return
 	}
 	uploadDir := "uploads/" + time.Now().Format("2006/01/")
@@ -104,47 +90,61 @@ func ProjectUpgrade(ctx iris.Context) {
 		response(ctx, false, "创建文件夹失败", nil)
 		return
 	}
-
-	fZip, err := os.Create(uploadDir + utils.FileName(projectModel.Name, model.Version) + ".zip")
+	zipDir := uploadDir + utils.FileName(projectModel.Name, version) + ".zip"
+	phm := models.ProjectHistoryModel{
+		ProjectId: projectId,
+		Version:   version,
+		Log:       logStr,
+		RHIds:     RHIds,
+		Path:      zipDir,
+		Hash:      utils.Md5Str(string(projectId) + version + logStr + RHIds),
+	}
+	model, err := phm.Insert()
 	if err != nil {
-		log.Println("Create", err)
+		response(ctx, false, "保存项目版本失败:"+err.Error(), nil)
+		return
+	}
+	fZip, err := os.Create(zipDir)
+	if err != nil {
+		response(ctx, false, "创建zip文件失败"+err.Error(), nil)
 		return
 	}
 	w := zip.NewWriter(fZip)
 	defer w.Close()
 	for _, id := range utils.StrToIntAlice(model.RHIds, ",") {
-		log.Println("id", id)
 		rhm := models.ResourceHistoryModel{
 			ID: id,
 		}
 		resourceHistoryModel, err := rhm.FirstBy()
 		if err != nil {
-			log.Println("FirstBy", err)
+			response(ctx, false, "获取资源版本失败"+err.Error(), nil)
 			return
 		}
-		log.Println(resourceHistoryModel.Path)
 		fw, err := w.Create(path.Base(resourceHistoryModel.Path))
 		if err != nil {
-			log.Println("Create", err)
+			response(ctx, false, "创建打包文件失败"+err.Error(), nil)
 			return
 		}
 		fileContent, err := ioutil.ReadFile(resourceHistoryModel.Path)
-		fmt.Println(string(fileContent))
 		if err != nil {
-			log.Println("ReadFile", err)
+			response(ctx, false, "读取要打包的文件内容失败"+err.Error(), nil)
 			return
 		}
 		_, err = fw.Write(fileContent)
 		if err != nil {
-			log.Println("Write", err)
+			response(ctx, false, "将文件内容写入压缩包失败"+err.Error(), nil)
 			return
+		}
+		err = w.SetComment(logStr)
+		if err != nil {
+			log.Println("向压缩包写入注释失败")
 		}
 	}
 
 	pm.PHId = model.ID
 	_, err = pm.Update()
 	if err != nil {
-		response(ctx, false, "更新项目失败:"+err.Error(), model)
+		response(ctx, false, "更新当前项目失败:"+err.Error(), nil)
 		return
 	}
 	response(ctx, true, "保存项目版本成功", model)
@@ -171,49 +171,30 @@ func ProjectAdd(ctx iris.Context) {
 	response(ctx, false, "保存项目成功", model)
 }
 
+//项目下载
 func ProjectDownload(ctx iris.Context) {
 	id, err := ctx.URLParamInt("id")
 	version := ctx.URLParam("version")
 	if err != nil || version == "" {
-		response(ctx, false, "文件ID和版本不能为空", nil)
+		response(ctx, false, "项目ID和版本不能为空", nil)
 		return
 	}
 	phm := models.ProjectHistoryModel{
 		ProjectId: id,
 		Version:   version,
 	}
-
 	model, err := phm.First()
 	if err != nil {
 		response(ctx, false, "当前项目版本不存在", nil)
 		return
 	}
-	RHIds := utils.StrToIntAlice(model.RHIds, ",")
-	_ = RHIds
-	//for _, id := range RHIds {
-	//	rhm := models.ResourceHistoryModel{
-	//		ID: id,
-	//	}
-	//	resourceHistoryModel, err := rhm.FirstBy()
-	//	if err != nil {
-	//
-	//		return
-	//	}
-	//
-	//}
-	//rhm := models.ResourceHistoryModel{
-	//	ResourceID: id,
-	//	Version:    version,
-	//}
-	//a, err := rhm.FirstBy()
-	//if err != nil {
-	//	response(ctx, false, "当前资源不存在", nil)
-	//	return
-	//}
-	//
-	//_, err = historyModel.Increment()
-	//if err != nil {
-	//	response(ctx, false, "更新资源下载量失败", nil)
-	//	return
-	//}
+	model.Download += 1
+	_, err = model.Update()
+	if err != nil {
+		log.Println("更新项目下载量失败:", err)
+	}
+	err = ctx.SendFile(model.Path, path.Base(model.Path))
+	if err != nil {
+		log.Println("下载项目失败:", err)
+	}
 }

@@ -8,6 +8,7 @@ type ProjectHistoryModel struct {
 	Version   string    `json:"version" gorm:"not null"`
 	RHIds     string    `json:"rh_ids"`
 	Log       string    `json:"log"`
+	Path      string    `json:"path"`
 	Hash      string    `json:"hash"`
 	Download  int       `json:"download"`
 	CreatedAt time.Time `json:"created_at"`
@@ -44,5 +45,15 @@ func (ph *ProjectHistoryModel) First() (*ProjectHistoryModel, error) {
 
 func (ph *ProjectHistoryModel) Insert() (*ProjectHistoryModel, error) {
 	model := db.DB.Create(ph)
+	return model.Value.(*ProjectHistoryModel), model.Error
+}
+
+//更新
+func (ph *ProjectHistoryModel) Update() (*ProjectHistoryModel, error) {
+	phm := &ProjectHistoryModel{}
+	model := db.DB.Model(phm).Updates(ph)
+	if model.RowsAffected == 0 {
+		return nil, NoRecordExists
+	}
 	return model.Value.(*ProjectHistoryModel), model.Error
 }
