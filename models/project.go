@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type ProjectModel struct {
 	ID        int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
@@ -27,10 +29,10 @@ func (p *ProjectModel) FirstBy() (*ProjectModel, error) {
 }
 
 //多数据查询
-func (p *ProjectModel) FindBy() (*[]ProjectModel, error) {
+func (p *ProjectModel) FindBy() ([]ProjectModel, error) {
 	var projects []ProjectModel
 	model := db.DB.Order("id DESC").Where(&p).Find(&projects)
-	return &projects, model.Error
+	return projects, model.Error
 }
 
 func (p *ProjectModel) Insert() (*ProjectModel, error) {

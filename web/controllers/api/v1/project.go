@@ -40,25 +40,30 @@ func ProjectDelete(ctx iris.Context) {
 func ProjectLists(ctx iris.Context) {
 	type item struct {
 		models.ProjectModel
-		models.ProjectHistoryModel
+		Version  string `json:"version"`
+		Download int    `json:"download"`
 	}
 	var list []item
 	pm := models.ProjectModel{}
-	model, err := pm.FindBy()
+	projects, err := pm.FindBy()
 	if err != nil {
-		response(ctx, true, "获取项目列表失败:"+err.Error(), nil)
+		response(ctx, false, "获取项目列表失败:"+err.Error(), nil)
 		return
 	}
-	for _, v := range *model {
+	for _, v := range projects {
 		phm := models.ProjectHistoryModel{
 			ProjectId: v.ID,
 		}
-		first, err := phm.First()
-		if err != nil {
-			response(ctx, true, "获取项目版本失败:"+err.Error(), nil)
+		project, err := phm.First()
+		if err != nil && err != models.NoRecordExists {
+			response(ctx, false, "获取项目版本失败:"+err.Error(), nil)
 			return
 		}
-		list = append(list, item{v, *first})
+		if project == nil {
+			list = append(list, item{v, "", 0})
+		} else {
+			list = append(list, item{v, project.Version, project.Download})
+		}
 	}
 	response(ctx, true, "获取项目列表成功", list)
 }
@@ -168,7 +173,7 @@ func ProjectAdd(ctx iris.Context) {
 		response(ctx, false, "保存项目失败:"+err.Error(), nil)
 		return
 	}
-	response(ctx, false, "保存项目成功", model)
+	response(ctx, true, "保存项目成功", model)
 }
 
 //项目下载

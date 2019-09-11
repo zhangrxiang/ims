@@ -35,7 +35,7 @@ func (db *DB) Init() {
 		panic("failed to connect database")
 	}
 
-	for index, v := range []interface{}{
+	for _, v := range []interface{}{
 		(*UserModel)(nil),
 		(*ResourceModel)(nil),
 		(*ResourceTypeModel)(nil),
@@ -46,7 +46,8 @@ func (db *DB) Init() {
 	} {
 		if !db.DB.HasTable(v) {
 			db.DB.CreateTable(v)
-			if index == 0 {
+			switch v.(type) {
+			case *UserModel:
 				db.DB.Create(&UserModel{
 					ID:       1,
 					Username: "admin",

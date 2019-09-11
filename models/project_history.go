@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"github.com/jinzhu/gorm"
+	"time"
+)
 
 type ProjectHistoryModel struct {
 	ID        int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
@@ -40,6 +43,9 @@ func (ph *ProjectHistoryModel) FindBy() (*[]ProjectHistoryModel, error) {
 func (ph *ProjectHistoryModel) First() (*ProjectHistoryModel, error) {
 	var project ProjectHistoryModel
 	model := db.DB.Order("id DESC").Where(&ph).First(&project)
+	if model.Error == gorm.ErrRecordNotFound {
+		return nil, NoRecordExists
+	}
 	return &project, model.Error
 }
 
