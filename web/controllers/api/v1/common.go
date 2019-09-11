@@ -37,7 +37,13 @@ func response(ctx iris.Context, success bool, errMsg string, data interface{}) {
 }
 
 func auth(ctx iris.Context) *models.UserModel {
-	user := ctx.Values().Get("user").(map[string]interface{})
+	u := ctx.Values().Get("user")
+	if u == nil {
+		response(ctx, false, "请登录", nil)
+		ctx.StopExecution()
+		return nil
+	}
+	user := u.(map[string]interface{})
 	return &models.UserModel{
 		ID:       int(user["id"].(float64)),
 		Username: user["username"].(string),

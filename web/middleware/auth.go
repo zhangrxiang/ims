@@ -29,6 +29,10 @@ func NewAuth() *Authenticate {
 				"/resource/group-lists",
 				"/resource/download",
 			},
+			"project": []string{
+				"/project/lists",
+				"/project/download",
+			},
 		},
 	}
 }
@@ -59,5 +63,4 @@ func (a *Authenticate) Serve(ctx context.Context) {
 		"data":    []int{},
 	})
 	return
-
 }

@@ -163,10 +163,15 @@ func ProjectAdd(ctx iris.Context) {
 		response(ctx, false, "请输入项目名称和简介", nil)
 		return
 	}
+
+	user := auth(ctx)
+	if user == nil {
+		return
+	}
 	pm := &models.ProjectModel{
 		Name:   name,
 		Desc:   desc,
-		UserId: auth(ctx).ID,
+		UserId: user.ID,
 	}
 	model, err := pm.Insert()
 	if err != nil {
