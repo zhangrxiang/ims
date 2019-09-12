@@ -34,17 +34,20 @@ func (ph *ProjectHistoryModel) DeleteByIds(ids []int) (*ProjectHistoryModel, err
 	return model.Value.(*ProjectHistoryModel), model.Error
 }
 
-func (ph *ProjectHistoryModel) FindBy() (*[]ProjectHistoryModel, error) {
+func (ph *ProjectHistoryModel) FindBy() ([]ProjectHistoryModel, error) {
 	var projects []ProjectHistoryModel
 	model := db.DB.Order("id DESC").Where(&ph).Find(&projects)
-	return &projects, model.Error
+	if model.Error == gorm.ErrRecordNotFound {
+		return projects, nil
+	}
+	return projects, model.Error
 }
 
 func (ph *ProjectHistoryModel) First() (*ProjectHistoryModel, error) {
 	var project ProjectHistoryModel
 	model := db.DB.Order("id DESC").Where(&ph).First(&project)
 	if model.Error == gorm.ErrRecordNotFound {
-		return nil, NoRecordExists
+		return nil, nil
 	}
 	return &project, model.Error
 }

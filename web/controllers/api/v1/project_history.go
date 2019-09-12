@@ -14,10 +14,27 @@ func ProjectHistoryLists(ctx iris.Context) {
 	phm := models.ProjectHistoryModel{
 		ProjectId: projectId,
 	}
-	historyModel, err := phm.FindBy()
+	phms, err := phm.FindBy()
 	if err != nil {
 		response(ctx, false, "获取项目历史版本失败", nil)
 		return
 	}
-	response(ctx, true, "", historyModel)
+	pm := &models.ProjectModel{
+		ID: projectId,
+	}
+	pm, err = pm.FirstBy()
+	if err != nil {
+		response(ctx, false, "获取项目失败", nil)
+		return
+	}
+	type project struct {
+		Name string `json:"name"`
+		Desc string `json:"desc"`
+		models.ProjectHistoryModel
+	}
+	var data []project
+	for _, v := range phms {
+		data = append(data, project{pm.Name, pm.Desc, v})
+	}
+	response(ctx, true, "", data)
 }

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/jinzhu/gorm"
 	"time"
 )
 
@@ -25,6 +26,9 @@ func (p *ProjectModel) DeleteByIds(ids []int) (*ProjectModel, error) {
 func (p *ProjectModel) FirstBy() (*ProjectModel, error) {
 	var project ProjectModel
 	model := db.DB.Order("id DESC").Where(&p).First(&project)
+	if model.Error == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
 	return &project, model.Error
 }
 
