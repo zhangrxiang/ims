@@ -56,7 +56,7 @@ func ResourceAdd(ctx iris.Context) {
 			response(ctx, false, "获取文件MD5失败:"+err.Error(), nil)
 			return
 		}
-		model, err := resourceModel.FindByHash(resourceModel.Hash)
+		model, err := resourceModel.FirstByHash(resourceModel.Hash)
 		if model != nil {
 			response(ctx, true, "相同的文件已存在:", iris.Map{
 				"resource": model,
@@ -188,7 +188,7 @@ func ResourceUpdate(ctx iris.Context) {
 			response(ctx, false, "获取文件MD5失败:"+err.Error(), nil)
 			return
 		}
-		model, err := resourceModel.FindByHash(resourceModel.Hash)
+		model, err := resourceModel.FirstByHash(resourceModel.Hash)
 		if model != nil {
 			response(ctx, true, "相同的文件已存在:", iris.Map{
 				"resource": model,
@@ -230,6 +230,27 @@ func ResourceUpdate(ctx iris.Context) {
 
 //资源列表
 func ResourceLists(ctx iris.Context) {
+	if ctx.URLParamExists("resource_type") {
+		resourceType, err := ctx.URLParamInt("resource_type")
+		if err != nil {
+			response(ctx, false, "资源分类ID不合法:"+err.Error(), nil)
+			return
+		}
+		rm := models.ResourceModel{
+			Type: resourceType,
+		}
+		data, err := rm.FindBy()
+		if err != nil {
+			response(ctx, false, "获取当前分类资源失败:"+err.Error(), nil)
+			return
+		}
+		response(ctx, true, "", iris.Map{
+			"resources": data,
+			"timestamp": time.Now().Unix(),
+		})
+		return
+	}
+
 	resourceModel := &models.ResourceModel{}
 	model, err := resourceModel.All()
 
@@ -247,7 +268,6 @@ func ResourceLists(ctx iris.Context) {
 
 //资源列表
 func ResourceGroupLists(ctx iris.Context) {
-
 	typeModel := &models.ResourceTypeModel{}
 	allType, err := typeModel.All()
 	if err != nil {

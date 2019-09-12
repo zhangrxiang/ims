@@ -19,7 +19,13 @@ type ResourceModel struct {
 	CreateAt time.Time `json:"create_at"`
 }
 
-func (r *ResourceModel) Find() (*ResourceModel, error) {
+func (r *ResourceModel) FindBy() ([]ResourceModel, error) {
+	var resources []ResourceModel
+	model := db.DB.Where(&r).Order("id DESC").Find(&resources)
+	return resources, model.Error
+}
+
+func (r *ResourceModel) First() (*ResourceModel, error) {
 	resource := &ResourceModel{}
 	model := db.DB.First(resource, r.ID)
 	return resource, model.Error
@@ -34,7 +40,7 @@ func (r *ResourceModel) FindByIds(ids []int) (*[]ResourceModel, error) {
 	return model.Value.(*[]ResourceModel), model.Error
 }
 
-func (r *ResourceModel) FindByHash(h string) (*ResourceModel, error) {
+func (r *ResourceModel) FirstByHash(h string) (*ResourceModel, error) {
 	resource := &ResourceModel{}
 	model := db.DB.Where("hash = ?", h).First(resource)
 	if model.RowsAffected == 0 {
