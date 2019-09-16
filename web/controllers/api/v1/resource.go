@@ -2,8 +2,6 @@ package v1
 
 import (
 	"github.com/kataras/iris"
-	"log"
-	"os"
 	"simple-ims/models"
 	"simple-ims/utils"
 	"strconv"
@@ -12,31 +10,91 @@ import (
 
 //添加资源
 func ResourceAdd(ctx iris.Context) {
-	name := ctx.FormValue("name")
-	_type := ctx.FormValue("type")
-	version := ctx.FormValue("version")
-	desc := ctx.FormValue("desc")
-	logStr := ctx.FormValue("log")
-
-	if name == "" || _type == "" {
-		response(ctx, false, "请输入资源名称,选择资源类型", nil)
+	name := ctx.PostValue("name")
+	desc := ctx.PostValue("desc")
+	if name == "" || desc == "" {
+		response(ctx, false, "请输入资源名称和描述", nil)
 		return
 	}
-
-	t, err := strconv.Atoi(_type)
+	t, err := ctx.PostValueInt("type")
 	if err != nil {
-		response(ctx, false, "资源类型不存在:"+err.Error(), nil)
+		response(ctx, false, "资源类型非法", nil)
 		return
 	}
-	var resourceModel = &models.ResourceModel{
-		Name:    name,
-		Type:    t,
-		Version: version,
-		Desc:    desc,
-		UserId:  auth(ctx).ID,
+	user := auth(ctx)
+	if user == nil {
+		return
+	}
+	rm := models.ResourceModel{
+		UserId: user.ID,
+		Name:   name,
+		Type:   t,
+		Desc:   desc,
+	}
+	_, err = rm.Insert()
+	if err != nil {
+		response(ctx, false, "保存资源失败:"+err.Error(), nil)
+		return
+	}
+	response(ctx, true, "保存资源成功", nil)
+}
+
+//更新资源
+func ResourceUpdate(ctx iris.Context) {
+	id, err := ctx.PostValueInt("id")
+	if err != nil {
+		response(ctx, false, "资源ID不合法:"+err.Error(), nil)
+		return
+	}
+	name := ctx.PostValue("name")
+	desc := ctx.PostValue("desc")
+	if name == "" || desc == "" {
+		response(ctx, false, "请输入资源名称和描述", nil)
+		return
+	}
+	t, err := ctx.PostValueInt("type")
+	if err != nil {
+		response(ctx, false, "资源类型非法:"+err.Error(), nil)
+		return
+	}
+	user := auth(ctx)
+	if user == nil {
+		return
+	}
+	rm := models.ResourceModel{
+		ID:     id,
+		UserId: user.ID,
+		Name:   name,
+		Type:   t,
+		Desc:   desc,
+	}
+	_, err = rm.Update()
+	if err != nil {
+		response(ctx, false, "更新资源失败:"+err.Error(), nil)
+		return
+	}
+	response(ctx, true, "更新资源成功", nil)
+}
+
+//添加资源版本
+func ResourceUpgrade(ctx iris.Context) {
+	resourceID, err := ctx.PostValueInt("resource_id")
+	if err != nil {
+		response(ctx, false, "资源ID非法", nil)
+		return
+	}
+	version := ctx.FormValue("version")
+	logStr := ctx.FormValue("log")
+	if version == "" || logStr == "" {
+		response(ctx, false, "请填写版本号和版本更新日志", nil)
+		return
 	}
 
 	file, info, err := ctx.FormFile("file")
+
+	resourceHistoryModel := &models.ResourceHistoryModel{
+		ResourceID: resourceID,
+	}
 	if file != nil {
 		if err != nil {
 			response(ctx, false, "获取上传文件失败:"+err.Error(), nil)
@@ -51,46 +109,44 @@ func ResourceAdd(ctx iris.Context) {
 			return
 		}
 
-		resourceModel.Hash, err = utils.Md5File(file)
+		resourceHistoryModel.Hash, err = utils.Md5File(file)
 		if err != nil {
 			response(ctx, false, "获取文件MD5失败:"+err.Error(), nil)
 			return
 		}
-		model, err := resourceModel.FirstByHash(resourceModel.Hash)
+		model, err := resourceHistoryModel.FirstBy()
 		if model != nil {
-			response(ctx, true, "相同的文件已存在:", iris.Map{
+			response(ctx, true, "相同的文件hash已存在:"+model.Hash, iris.Map{
 				"resource": model,
 			})
 			return
 		}
-		resourceModel.File = info.Filename
-		resourceModel.Path = uploadDir + utils.FileName(info.Filename, version)
-		err = utils.CopyFile(resourceModel.Path, file)
+		resourceHistoryModel.Log = logStr
+		resourceHistoryModel.File = info.Filename
+		resourceHistoryModel.Path = uploadDir + utils.FileName(info.Filename, version)
+		err = utils.CopyFile(resourceHistoryModel.Path, file)
 		if err != nil {
 			response(ctx, false, "保存文件失败:"+err.Error(), nil)
 			return
 		}
-	}
-
-	resourceModel.CreateAt = time.Now()
-	model, err := resourceModel.Insert()
-	if err != nil {
-		response(ctx, false, "添加资源失败:"+err.Error(), nil)
+	} else {
+		response(ctx, false, "请上传文件", nil)
 		return
 	}
 
-	resourceHistoryModel := &models.ResourceHistoryModel{
-		ResourceID: model.ID,
-		File:       model.File,
-		Version:    model.Version,
-		Path:       model.Path,
-		Hash:       model.Hash,
-		CreateAt:   model.CreateAt,
-		Log:        logStr,
-	}
-	_, err = resourceHistoryModel.Insert()
+	model, err := resourceHistoryModel.Insert()
 	if err != nil {
-		response(ctx, false, "保存历史资源版本失败:"+err.Error(), nil)
+		response(ctx, false, "添加资源版本失败:"+err.Error(), nil)
+		return
+	}
+
+	resourceModel := &models.ResourceModel{
+		ID:   resourceID,
+		RHId: model.ID,
+	}
+	_, err = resourceModel.Update()
+	if err != nil {
+		response(ctx, false, "更新资源失败:"+err.Error(), nil)
 		return
 	}
 
@@ -102,7 +158,6 @@ func ResourceAdd(ctx iris.Context) {
 //删除资源
 func ResourceDelete(ctx iris.Context) {
 	idsStr := ctx.FormValue("id")
-
 	ids := utils.StrToIntAlice(idsStr, ",")
 
 	if ids == nil {
@@ -111,7 +166,7 @@ func ResourceDelete(ctx iris.Context) {
 	}
 
 	resourceModel := &models.ResourceModel{}
-	resources, err := resourceModel.FindByIds(ids)
+	_, err := resourceModel.FindByIds(ids)
 	if err != nil {
 		response(ctx, false, "查找要删除的资源失败:"+err.Error(), nil)
 		return
@@ -121,111 +176,18 @@ func ResourceDelete(ctx iris.Context) {
 		response(ctx, false, "删除资源失败:"+err.Error(), nil)
 		return
 	}
-	go func(resources *[]models.ResourceModel) {
-		for _, resource := range *resources {
-			err := os.Remove(resource.Path)
-			if err != nil {
-				log.Println("remove file", resource.Name, err)
-			} else {
-				log.Println("remove file", resource.Name)
-			}
-		}
-	}(resources)
-
+	//go func(resources *[]models.ResourceModel) {
+	//	for _, resource := range *resources {
+	//		err := os.Remove(resource.Path)
+	//		if err != nil {
+	//			log.Println("remove file", resource.Name, err)
+	//		} else {
+	//			log.Println("remove file", resource.Name)
+	//		}
+	//	}
+	//}(resources)
 	response(ctx, true, "", nil)
 	return
-}
-
-//更新资源
-func ResourceUpdate(ctx iris.Context) {
-	idStr := ctx.FormValue("id")
-	name := ctx.FormValue("name")
-	typeStr := ctx.FormValue("type")
-	version := ctx.FormValue("version")
-	desc := ctx.FormValue("desc")
-	logStr := ctx.FormValue("log")
-
-	if name == "" || typeStr == "" {
-		response(ctx, false, "请输入资源名称,选择资源类型", nil)
-		return
-	}
-
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response(ctx, false, "资源ID格式不合法:"+err.Error(), nil)
-		return
-	}
-	t, err := strconv.Atoi(typeStr)
-	if err != nil {
-		response(ctx, false, "资源类型格式不合法:"+err.Error(), nil)
-		return
-	}
-	var resourceModel = &models.ResourceModel{
-		ID:      id,
-		Name:    name,
-		Type:    t,
-		Version: version,
-		Desc:    desc,
-	}
-
-	file, info, err := ctx.FormFile("file")
-	if file != nil {
-		if err != nil {
-			response(ctx, false, "获取上传文件失败:"+err.Error(), nil)
-			return
-		}
-
-		defer file.Close()
-
-		uploadDir := "uploads/" + time.Now().Format("2006/01/")
-		if !utils.Mkdir(uploadDir) {
-			response(ctx, false, "创建文件夹失败", nil)
-			return
-		}
-
-		resourceModel.Hash, err = utils.Md5File(file)
-		if err != nil {
-			response(ctx, false, "获取文件MD5失败:"+err.Error(), nil)
-			return
-		}
-		model, err := resourceModel.FirstByHash(resourceModel.Hash)
-		if model != nil {
-			response(ctx, true, "相同的文件已存在:", iris.Map{
-				"resource": model,
-			})
-			return
-		}
-		resourceModel.File = info.Filename
-		resourceModel.Path = uploadDir + utils.FileName(info.Filename, version)
-		err = utils.CopyFile(resourceModel.Path, file)
-		if err != nil {
-			response(ctx, false, "保存文件失败:"+err.Error(), nil)
-			return
-		}
-	}
-	resourceModel.CreateAt = time.Now()
-	model, err := resourceModel.Update()
-	if err != nil {
-		response(ctx, false, "更新资源失败:"+err.Error(), nil)
-		return
-	}
-	resourceHistoryModel := &models.ResourceHistoryModel{
-		ResourceID: resourceModel.ID,
-		File:       resourceModel.File,
-		Version:    resourceModel.Version,
-		Path:       resourceModel.Path,
-		Hash:       resourceModel.Hash,
-		CreateAt:   resourceModel.CreateAt,
-		Log:        logStr,
-	}
-	_, err = resourceHistoryModel.Insert()
-	if err != nil {
-		response(ctx, false, "保存历史资源版本失败:"+err.Error(), nil)
-		return
-	}
-	response(ctx, true, "更新资源成功:", iris.Map{
-		"resource": model,
-	})
 }
 
 //资源列表
@@ -263,7 +225,6 @@ func ResourceLists(ctx iris.Context) {
 		"resources": model,
 		"timestamp": time.Now().Unix(),
 	})
-	return
 }
 
 //资源列表

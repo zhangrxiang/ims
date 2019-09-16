@@ -33,6 +33,9 @@ func NewAuth() *Authenticate {
 				"/project/lists",
 				"/project/download",
 			},
+			"project-history": []string{
+				"/project-history/lists",
+			},
 		},
 	}
 }

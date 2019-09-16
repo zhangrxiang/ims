@@ -15,7 +15,7 @@ type ResourceHistoryModel struct {
 	Path       string    `json:"path"`
 	Hash       string    `json:"hash"`
 	Download   int       `json:"download"`
-	CreateAt   time.Time `json:"create_at"`
+	CreatedAt  time.Time `json:"create_at"`
 }
 
 func (rh *ResourceHistoryModel) Increment() (*ResourceHistoryModel, error) {
@@ -33,6 +33,9 @@ func (rh *ResourceHistoryModel) Insert() (*ResourceHistoryModel, error) {
 func (rh *ResourceHistoryModel) FirstBy() (*ResourceHistoryModel, error) {
 	var resource ResourceHistoryModel
 	model := db.DB.Where(rh).First(&resource)
+	if model.Error == gorm.ErrRecordNotFound {
+		return nil, NoRecordExists
+	}
 	return &resource, model.Error
 }
 

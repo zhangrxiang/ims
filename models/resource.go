@@ -6,17 +6,14 @@ import (
 )
 
 type ResourceModel struct {
-	ID       int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
-	UserId   int       `json:"user_id"`
-	Name     string    `json:"name" gorm:"not null"`
-	Type     int       `json:"type" gorm:"not null"`
-	File     string    `json:"file"`
-	Path     string    `json:"path"`
-	Hash     string    `json:"hash"`
-	Version  string    `json:"version" gorm:"not null"`
-	Desc     string    `json:"desc" gorm:"not null"`
-	Download int       `json:"download"`
-	CreateAt time.Time `json:"create_at"`
+	ID        int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
+	UserId    int       `json:"user_id"`
+	RHId      int       `json:"rh_id"`
+	Name      string    `json:"name" gorm:"not null"`
+	Type      int       `json:"type" gorm:"not null"`
+	Desc      string    `json:"desc" gorm:"not null"`
+	Download  int       `json:"download"`
+	CreatedAt time.Time `json:"create_at"`
 }
 
 func (r *ResourceModel) FindBy() ([]ResourceModel, error) {
