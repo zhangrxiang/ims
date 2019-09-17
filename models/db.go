@@ -48,18 +48,35 @@ func (db *DB) Init() {
 			db.DB.CreateTable(v)
 			switch v.(type) {
 			case *UserModel:
-				db.DB.Create(&UserModel{
+				for _, v := range []*UserModel{{
 					ID:       1,
 					Username: "admin",
 					Password: "123456",
 					Role:     "admin",
-				})
-				db.DB.Create(&UserModel{
+				}, {
 					ID:       2,
 					Username: "atian",
 					Password: "123456",
 					Role:     "downloader",
-				})
+				}} {
+					db.DB.Create(v)
+				}
+			case *ResourceTypeModel:
+				for _, v := range []*ResourceTypeModel{{
+					ID:   1,
+					Name: "震动",
+					Desc: "关于震动",
+				}, {
+					ID:   2,
+					Name: "周界",
+					Desc: "关于周界",
+				}, {
+					ID:   3,
+					Name: "测温",
+					Desc: "关于测温",
+				}} {
+					db.DB.Create(v)
+				}
 			}
 		}
 		db.DB.AutoMigrate(v)

@@ -194,8 +194,10 @@ func ResourceDelete(ctx iris.Context) {
 func ResourceLists(ctx iris.Context) {
 	type item struct {
 		models.ResourceModel
+		File     string `json:"file"`
 		Version  string `json:"version"`
 		Download int    `json:"download"`
+		Log      string `json:"log"`
 	}
 	var list []item
 	rm := models.ResourceModel{}
@@ -230,12 +232,16 @@ func ResourceLists(ctx iris.Context) {
 				ResourceModel: v,
 				Version:       resource.Version,
 				Download:      resource.Download,
+				File:          resource.File,
+				Log:           resource.Log,
 			})
 		} else {
 			list = append(list, item{
 				ResourceModel: v,
 				Version:       "",
 				Download:      0,
+				File:          "",
+				Log:           "",
 			})
 		}
 	}

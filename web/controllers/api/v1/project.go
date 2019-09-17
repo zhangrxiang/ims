@@ -181,6 +181,40 @@ func ProjectAdd(ctx iris.Context) {
 	response(ctx, true, "保存项目成功", model)
 }
 
+//项目更新
+func ProjectUpdate(ctx iris.Context) {
+	id, err := ctx.PostValueInt("id")
+	if err != nil || id < 1 {
+		log.Println(id)
+		log.Println(ctx.PostValue("id"))
+		response(ctx, false, "项目ID不合法", nil)
+		return
+	}
+	name := ctx.FormValue("name")
+	desc := ctx.FormValue("desc")
+	if name == "" || desc == "" {
+		response(ctx, false, "请输入项目名称和简介", nil)
+		return
+	}
+
+	user := auth(ctx)
+	if user == nil {
+		return
+	}
+	pm := &models.ProjectModel{
+		ID:     id,
+		Name:   name,
+		Desc:   desc,
+		UserId: user.ID,
+	}
+	_, err = pm.Update()
+	if err != nil {
+		response(ctx, false, "更新项目失败:"+err.Error(), nil)
+		return
+	}
+	response(ctx, true, "更新项目成功", nil)
+}
+
 //项目下载
 func ProjectDownload(ctx iris.Context) {
 	id, err := ctx.URLParamInt("id")
