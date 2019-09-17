@@ -192,39 +192,54 @@ func ResourceDelete(ctx iris.Context) {
 
 //资源列表
 func ResourceLists(ctx iris.Context) {
+	type item struct {
+		models.ResourceModel
+		Version  string `json:"version"`
+		Download int    `json:"download"`
+	}
+	var list []item
+	rm := models.ResourceModel{}
+
 	if ctx.URLParamExists("resource_type") {
 		resourceType, err := ctx.URLParamInt("resource_type")
 		if err != nil {
 			response(ctx, false, "资源分类ID不合法:"+err.Error(), nil)
 			return
 		}
-		rm := models.ResourceModel{
+		rm = models.ResourceModel{
 			Type: resourceType,
 		}
-		data, err := rm.FindBy()
-		if err != nil {
-			response(ctx, false, "获取当前分类资源失败:"+err.Error(), nil)
+
+	}
+	resources, err := rm.FindBy()
+	if err != nil {
+		response(ctx, false, "获取资源失败:"+err.Error(), nil)
+		return
+	}
+	for _, v := range resources {
+		rhm := models.ResourceHistoryModel{
+			ID: v.RHId,
+		}
+		resource, err := rhm.FirstBy()
+		if err != nil && err != models.NoRecordExists {
+			response(ctx, false, "获取资源版本失败:"+err.Error(), nil)
 			return
 		}
-		response(ctx, true, "", iris.Map{
-			"resources": data,
-			"timestamp": time.Now().Unix(),
-		})
-		return
+		if resource != nil {
+			list = append(list, item{
+				ResourceModel: v,
+				Version:       resource.Version,
+				Download:      resource.Download,
+			})
+		} else {
+			list = append(list, item{
+				ResourceModel: v,
+				Version:       "",
+				Download:      0,
+			})
+		}
 	}
-
-	resourceModel := &models.ResourceModel{}
-	model, err := resourceModel.All()
-
-	if err != nil {
-		response(ctx, false, "获取资源列表失败:"+err.Error(), nil)
-		return
-	}
-
-	response(ctx, true, "", iris.Map{
-		"resources": model,
-		"timestamp": time.Now().Unix(),
-	})
+	response(ctx, true, "获取资源列表成功", list)
 }
 
 //资源列表
@@ -290,7 +305,10 @@ func ResourceDownload(ctx iris.Context) {
 		return
 	}
 
-	userModel, _ := authUser(ctx)
+	userModel := auth(ctx)
+	if userModel == nil {
+		return
+	}
 	downloadModel := models.DownloadModel{
 		RHId:     historyModel.ID,
 		UserId:   userModel.ID,
