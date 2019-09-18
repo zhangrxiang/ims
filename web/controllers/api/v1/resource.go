@@ -259,21 +259,56 @@ func ResourceGroupLists(ctx iris.Context) {
 		response(ctx, false, "获取资源类型列表失败:"+err.Error(), nil)
 		return
 	}
-
 	if len(allType) > 0 {
 		resourceModel := &models.ResourceModel{}
+		type item struct {
+			ID        int       `json:"id"`
+			Name      string    `json:"name"`
+			Desc      string    `json:"desc"`
+			Version   string    `json:"version"`
+			File      string    `json:"file"`
+			Log       string    `json:"log"`
+			Download  int       `json:"download"`
+			UpdatedAt time.Time `json:"updated_at"`
+		}
 		var data []map[string]interface{}
 		for _, t := range allType {
-			model, err := resourceModel.FindByType(t.ID)
+			resourceModel.Type = t.ID
+			resources, err := resourceModel.FindBy()
 			if err != nil {
 				response(ctx, false, "获取资源失败:"+err.Error(), nil)
 				return
 			}
-			if len(model) > 0 {
+			if len(resources) > 0 {
+				var lists []item
+				for _, v := range resources {
+					rhm := models.ResourceHistoryModel{ID: v.RHId}
+					result, err := rhm.FirstBy()
+					if err != nil {
+						return
+					}
+					if result != nil {
+						lists = append(lists, item{
+							ID:        v.ID,
+							Name:      v.Name,
+							Desc:      v.Desc,
+							Version:   result.Version,
+							Download:  result.Download,
+							Log:       result.Log,
+							File:      utils.FileName(result.File, result.Version),
+							UpdatedAt: result.CreatedAt,
+						})
+					} else {
+						lists = append(lists, item{
+							Name: v.Name,
+							Desc: v.Desc,
+						})
+					}
+				}
 				resource := make(map[string]interface{})
 				resource["name"] = t.Name
 				resource["desc"] = t.Desc
-				resource["lists"] = model
+				resource["lists"] = lists
 				data = append(data, resource)
 			}
 		}
@@ -283,7 +318,7 @@ func ResourceGroupLists(ctx iris.Context) {
 		})
 		return
 	}
-	response(ctx, true, "请先添加资源分类", nil)
+	response(ctx, true, "暂无资源", nil)
 }
 
 //下载文件

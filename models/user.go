@@ -2,15 +2,18 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type UserModel struct {
-	ID       int    `json:"id",gorm:"primary_key;AUTO_INCREMENT"`
-	Username string `json:"username",gorm:"not null;unique;type:varchar(30)"`
-	Password string `json:"password",gorm:"not null;type:varchar(20)"`
-	Role     string `json:"role"`
-	Phone    string `json:"phone",gorm:"not null"`
-	Mail     string `json:"mail",gorm:"not null"`
+	ID        int       `json:"id",gorm:"primary_key;AUTO_INCREMENT"`
+	Username  string    `json:"username",gorm:"not null;unique;type:varchar(30)"`
+	Password  string    `json:"password",gorm:"not null;type:varchar(20)"`
+	Role      string    `json:"role"`
+	Phone     string    `json:"phone",gorm:"not null"`
+	Mail      string    `json:"mail",gorm:"not null"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func (u *UserModel) Find() (*UserModel, error) {

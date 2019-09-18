@@ -34,7 +34,7 @@ func (rh *ResourceHistoryModel) FirstBy() (*ResourceHistoryModel, error) {
 	var resource ResourceHistoryModel
 	model := db.DB.Where(rh).First(&resource)
 	if model.Error == gorm.ErrRecordNotFound {
-		return nil, NoRecordExists
+		return nil, nil
 	}
 	return &resource, model.Error
 }
