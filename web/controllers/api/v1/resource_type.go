@@ -19,9 +19,8 @@ func ResourceTypeAdd(ctx iris.Context) {
 		return
 	}
 	resourceTypeModel := &models.ResourceTypeModel{
-		Name:     name,
-		Desc:     desc,
-		CreateAt: time.Now(),
+		Name: name,
+		Desc: desc,
 	}
 	model, err := resourceTypeModel.Insert()
 

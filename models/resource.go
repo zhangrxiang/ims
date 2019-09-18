@@ -13,7 +13,8 @@ type ResourceModel struct {
 	Type      int       `json:"type" gorm:"not null"`
 	Desc      string    `json:"desc" gorm:"not null"`
 	Download  int       `json:"download"`
-	CreatedAt time.Time `json:"create_at"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func (r *ResourceModel) FindBy() ([]ResourceModel, error) {

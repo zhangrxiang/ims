@@ -83,8 +83,8 @@ func ResourceUpgrade(ctx iris.Context) {
 		response(ctx, false, "资源ID非法", nil)
 		return
 	}
-	version := ctx.FormValue("version")
-	logStr := ctx.FormValue("log")
+	version := ctx.PostValue("version")
+	logStr := ctx.PostValue("log")
 	if version == "" || logStr == "" {
 		response(ctx, false, "请填写版本号和版本更新日志", nil)
 		return
@@ -121,6 +121,7 @@ func ResourceUpgrade(ctx iris.Context) {
 			})
 			return
 		}
+		resourceHistoryModel.Version = version
 		resourceHistoryModel.Log = logStr
 		resourceHistoryModel.File = info.Filename
 		resourceHistoryModel.Path = uploadDir + utils.FileName(info.Filename, version)
@@ -219,22 +220,24 @@ func ResourceLists(ctx iris.Context) {
 		return
 	}
 	for _, v := range resources {
-		rhm := models.ResourceHistoryModel{
-			ID: v.RHId,
-		}
-		resource, err := rhm.FirstBy()
-		if err != nil && err != models.NoRecordExists {
-			response(ctx, false, "获取资源版本失败:"+err.Error(), nil)
-			return
-		}
-		if resource != nil {
-			list = append(list, item{
-				ResourceModel: v,
-				Version:       resource.Version,
-				Download:      resource.Download,
-				File:          resource.File,
-				Log:           resource.Log,
-			})
+		if v.RHId != 0 {
+			rhm := models.ResourceHistoryModel{
+				ID: v.RHId,
+			}
+			resource, err := rhm.FirstBy()
+			if err != nil && err != models.NoRecordExists {
+				response(ctx, false, "获取资源版本失败:"+err.Error(), nil)
+				return
+			}
+			if resource != nil {
+				list = append(list, item{
+					ResourceModel: v,
+					Version:       resource.Version,
+					Download:      resource.Download,
+					File:          resource.File,
+					Log:           resource.Log,
+				})
+			}
 		} else {
 			list = append(list, item{
 				ResourceModel: v,

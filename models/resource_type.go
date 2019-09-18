@@ -6,10 +6,11 @@ import (
 )
 
 type ResourceTypeModel struct {
-	ID       int       `gorm:"primary_key;AUTO_INCREMENT" json:"id"`
-	Name     string    `gorm:"unique;not null" json:"name"`
-	Desc     string    `json:"desc" gorm:"not null"`
-	CreateAt time.Time `json:"create_at"`
+	ID        int       `gorm:"primary_key;AUTO_INCREMENT" json:"id"`
+	Name      string    `gorm:"unique;not null" json:"name"`
+	Desc      string    `json:"desc" gorm:"not null"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 //查询所有
