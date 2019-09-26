@@ -282,26 +282,35 @@ func ResourceGroupLists(ctx iris.Context) {
 			if len(resources) > 0 {
 				var lists []item
 				for _, v := range resources {
-					rhm := models.ResourceHistoryModel{ID: v.RHId}
-					result, err := rhm.FirstBy()
-					if err != nil {
-						return
-					}
-					if result != nil {
-						lists = append(lists, item{
-							ID:        v.ID,
-							Name:      v.Name,
-							Desc:      v.Desc,
-							Version:   result.Version,
-							Download:  result.Download,
-							Log:       result.Log,
-							File:      utils.FileName(result.File, result.Version),
-							UpdatedAt: result.CreatedAt,
-						})
+					if v.RHId != 0 {
+						rhm := models.ResourceHistoryModel{ID: v.RHId}
+						result, err := rhm.FirstBy()
+						if err != nil {
+							response(ctx, false, "获取历史资源失败:"+err.Error(), nil)
+							return
+						}
+						if result != nil {
+							lists = append(lists, item{
+								ID:        v.ID,
+								Name:      v.Name,
+								Desc:      v.Desc,
+								Version:   result.Version,
+								Download:  result.Download,
+								Log:       result.Log,
+								File:      utils.FileName(result.File, result.Version),
+								UpdatedAt: result.CreatedAt,
+							})
+						} else {
+							lists = append(lists, item{
+								Name: v.Name,
+								Desc: v.Desc,
+							})
+						}
 					} else {
 						lists = append(lists, item{
-							Name: v.Name,
-							Desc: v.Desc,
+							Name:      v.Name,
+							Desc:      v.Desc,
+							UpdatedAt: v.UpdatedAt,
 						})
 					}
 				}
@@ -310,6 +319,12 @@ func ResourceGroupLists(ctx iris.Context) {
 				resource["desc"] = t.Desc
 				resource["lists"] = lists
 				data = append(data, resource)
+			} else {
+				data = append(data, map[string]interface{}{
+					"name":  t.Name,
+					"desc":  t.Desc,
+					"lists": nil,
+				})
 			}
 		}
 		response(ctx, true, "", iris.Map{

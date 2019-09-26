@@ -60,6 +60,7 @@ func ProjectLists(ctx iris.Context) {
 			return
 		}
 		if project == nil {
+			v.UpdatedAt = v.CreatedAt
 			list = append(list, item{v, "", 0})
 		} else {
 			list = append(list, item{v, project.Version, project.Download})
