@@ -79,8 +79,8 @@ func ProjectUpgrade(ctx iris.Context) {
 	version := ctx.FormValue("version")
 	RHIds := ctx.FormValue("rh_ids")
 	logStr := ctx.FormValue("log")
-	if version == "" || RHIds == "" || logStr == "" {
-		response(ctx, false, "请输入版本号和日志,选择对应资源", nil)
+	if version == "" || RHIds == "" {
+		response(ctx, false, "请输入版本号,选择对应资源", nil)
 		return
 	}
 	pm := models.ProjectModel{

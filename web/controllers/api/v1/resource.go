@@ -85,8 +85,8 @@ func ResourceUpgrade(ctx iris.Context) {
 	}
 	version := ctx.PostValue("version")
 	logStr := ctx.PostValue("log")
-	if version == "" || logStr == "" {
-		response(ctx, false, "请填写版本号和版本更新日志", nil)
+	if version == "" {
+		response(ctx, false, "请填写版本号", nil)
 		return
 	}
 
