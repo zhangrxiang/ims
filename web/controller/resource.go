@@ -95,6 +95,12 @@ func ResourceUpgrade(ctx iris.Context) {
 	resourceHistoryModel := &models.ResourceHistoryModel{
 		ResourceID: resourceID,
 	}
+	model, err := resourceHistoryModel.FirstBy()
+	if model != nil && utils.VersionCompare(version, model.Version) < 1 {
+		response(ctx, false, "当前版本必须高于最新版本:"+model.Version, nil)
+		return
+	}
+
 	if file != nil {
 		if err != nil {
 			response(ctx, false, "获取上传文件失败:"+err.Error(), nil)
@@ -135,7 +141,7 @@ func ResourceUpgrade(ctx iris.Context) {
 		return
 	}
 
-	model, err := resourceHistoryModel.Insert()
+	model, err = resourceHistoryModel.Insert()
 	if err != nil {
 		response(ctx, false, "添加资源版本失败:"+err.Error(), nil)
 		return

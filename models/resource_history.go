@@ -32,7 +32,7 @@ func (rh *ResourceHistoryModel) Insert() (*ResourceHistoryModel, error) {
 //单数据查询
 func (rh *ResourceHistoryModel) FirstBy() (*ResourceHistoryModel, error) {
 	var resource ResourceHistoryModel
-	model := db.DB.Where(rh).First(&resource)
+	model := db.DB.Where(rh).Order("id DESC").First(&resource)
 	if model.Error == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

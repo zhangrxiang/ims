@@ -91,13 +91,21 @@ func ProjectUpgrade(ctx iris.Context) {
 		response(ctx, false, "获取当前项目详情失败:"+err.Error(), nil)
 		return
 	}
+	phm := &models.ProjectHistoryModel{
+		ProjectId: projectId,
+	}
+	phm, err = phm.First()
+	if phm != nil && utils.VersionCompare(version, phm.Version) < 1 {
+		response(ctx, false, "当前版本必须高于最新版本:"+phm.Version, nil)
+		return
+	}
 	uploadDir := "uploads/" + time.Now().Format("2006/01/")
 	if !utils.Mkdir(uploadDir) {
 		response(ctx, false, "创建文件夹失败", nil)
 		return
 	}
 	zipDir := uploadDir + utils.FileName(projectModel.Name, version) + ".zip"
-	phm := models.ProjectHistoryModel{
+	phm = &models.ProjectHistoryModel{
 		ProjectId: projectId,
 		Version:   version,
 		Log:       logStr,

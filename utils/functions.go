@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"archive/zip"
 	"crypto/md5"
 	"encoding/hex"
 	"io"
@@ -72,56 +71,18 @@ func FileName(p string, version string) string {
 	return strings.TrimSuffix(path.Base(p), path.Ext(p)) + "-" + version + path.Ext(p)
 }
 
-func Compress(files []*os.File, dest string) error {
-	d, _ := os.Create(dest)
-	defer d.Close()
-	w := zip.NewWriter(d)
-	defer w.Close()
-	for _, file := range files {
-		err := compress(file, "", w)
-		if err != nil {
-			return err
+func VersionCompare(v1, v2 string) int8 {
+	if v1 == v2 {
+		return 0
+	}
+	sv1 := strings.Split(v1, ".")
+	sv2 := strings.Split(v2, ".")
+	for k, v := range sv1 {
+		if v > sv2[k] {
+			return 1
+		} else if v < sv2[k] {
+			return -1
 		}
 	}
-	return nil
-}
-
-func compress(file *os.File, prefix string, zw *zip.Writer) error {
-	info, err := file.Stat()
-	if err != nil {
-		return err
-	}
-	if info.IsDir() {
-		prefix = prefix + "/" + info.Name()
-		fileInfos, err := file.Readdir(-1)
-		if err != nil {
-			return err
-		}
-		for _, fi := range fileInfos {
-			f, err := os.Open(file.Name() + "/" + fi.Name())
-			if err != nil {
-				return err
-			}
-			err = compress(f, prefix, zw)
-			if err != nil {
-				return err
-			}
-		}
-	} else {
-		header, err := zip.FileInfoHeader(info)
-		if err != nil {
-			return err
-		}
-		header.Name = prefix + "/" + header.Name
-		writer, err := zw.CreateHeader(header)
-		if err != nil {
-			return err
-		}
-		_, err = io.Copy(writer, file)
-		file.Close()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return 1
 }
