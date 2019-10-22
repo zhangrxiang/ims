@@ -6,7 +6,7 @@ import (
 	"github.com/kataras/iris/middleware/logger"
 	"log"
 	"simple-ims/models"
-	"simple-ims/web/controllers/api/v1"
+	"simple-ims/web/controller"
 	"simple-ims/web/middleware"
 	"sync"
 )
@@ -52,15 +52,15 @@ func (web *Web) Init() {
 		_, _ = context.WriteString("PONG")
 	})
 	//用户
-	web.app.Get(v1Api+"/user/login", v1.UserLogin)
+	web.app.Get(v1Api+"/user/login", controller.UserLogin)
 	user := web.app.Party(v1Api + "/user")
 	user.Use(middleware.JWT)
 	user.Use(middleware.Auth)
 	{
-		user.Get("/lists", v1.UserLists)
-		user.Post("/register", v1.UserRegister)
-		user.Get("/delete", v1.UserDelete)
-		user.Post("/update", v1.UserUpdate)
+		user.Get("/lists", controller.UserLists)
+		user.Post("/register", controller.UserRegister)
+		user.Get("/delete", controller.UserDelete)
+		user.Post("/update", controller.UserUpdate)
 	}
 
 	//资源分类
@@ -68,10 +68,10 @@ func (web *Web) Init() {
 	resourceType.Use(middleware.JWT)
 	resourceType.Use(middleware.Auth)
 	{
-		resourceType.Post("/add", v1.ResourceTypeAdd)
-		resourceType.Get("/lists", v1.ResourceTypeLists)
-		resourceType.Post("/update", v1.ResourceTypeUpdate)
-		resourceType.Get("/delete", v1.ResourceTypeDelete)
+		resourceType.Post("/add", controller.ResourceTypeAdd)
+		resourceType.Get("/lists", controller.ResourceTypeLists)
+		resourceType.Post("/update", controller.ResourceTypeUpdate)
+		resourceType.Get("/delete", controller.ResourceTypeDelete)
 	}
 
 	//资源
@@ -79,13 +79,13 @@ func (web *Web) Init() {
 	resource.Use(middleware.JWT)
 	resource.Use(middleware.Auth)
 	{
-		resource.Post("/add", v1.ResourceAdd)
-		resource.Get("/lists", v1.ResourceLists)
-		resource.Get("/delete", v1.ResourceDelete)
-		resource.Post("/update", v1.ResourceUpdate)
-		resource.Post("/upgrade", v1.ResourceUpgrade)
-		resource.Get("/download", v1.ResourceDownload)
-		resource.Get("/group-lists", v1.ResourceGroupLists)
+		resource.Post("/add", controller.ResourceAdd)
+		resource.Get("/lists", controller.ResourceLists)
+		resource.Get("/delete", controller.ResourceDelete)
+		resource.Post("/update", controller.ResourceUpdate)
+		resource.Post("/upgrade", controller.ResourceUpgrade)
+		resource.Get("/download", controller.ResourceDownload)
+		resource.Get("/group-lists", controller.ResourceGroupLists)
 	}
 
 	//历史版本
@@ -93,7 +93,7 @@ func (web *Web) Init() {
 	resourceHistory.Use(middleware.JWT)
 	resourceHistory.Use(middleware.Auth)
 	{
-		resourceHistory.Get("/lists", v1.ResourceHistoryLists)
+		resourceHistory.Get("/lists", controller.ResourceHistoryLists)
 	}
 
 	//项目
@@ -101,12 +101,12 @@ func (web *Web) Init() {
 	project.Use(middleware.JWT)
 	project.Use(middleware.Auth)
 	{
-		project.Post("/add", v1.ProjectAdd)
-		project.Post("/update", v1.ProjectUpdate)
-		project.Post("/upgrade", v1.ProjectUpgrade)
-		project.Get("/lists", v1.ProjectLists)
-		project.Get("/delete", v1.ProjectDelete)
-		project.Get("/download", v1.ProjectDownload)
+		project.Post("/add", controller.ProjectAdd)
+		project.Post("/update", controller.ProjectUpdate)
+		project.Post("/upgrade", controller.ProjectUpgrade)
+		project.Get("/lists", controller.ProjectLists)
+		project.Get("/delete", controller.ProjectDelete)
+		project.Get("/download", controller.ProjectDownload)
 		//project.Get("/group-lists", v1.ResourceGroupLists)
 	}
 
@@ -114,7 +114,7 @@ func (web *Web) Init() {
 	projectHistory.Use(middleware.JWT)
 	projectHistory.Use(middleware.Auth)
 	{
-		projectHistory.Get("/lists", v1.ProjectHistoryLists)
+		projectHistory.Get("/lists", controller.ProjectHistoryLists)
 	}
 
 	//web.app.OnErrorCode(iris.StatusNotFound, func(ctx iris.Context) {

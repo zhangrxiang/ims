@@ -26,3 +26,5 @@ _testmain.go
 .idea
 go.sum
 model.db
+logs
+uploads

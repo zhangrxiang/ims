@@ -1,4 +1,4 @@
-package v1
+package controller
 
 //func TestResourceAdd(t *testing.T) {
 //	//创建一个缓冲区对象,后面的要上传的body都存在这个缓冲区里
