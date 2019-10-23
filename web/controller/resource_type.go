@@ -55,6 +55,12 @@ func ResourceTypeDelete(ctx iris.Context) {
 			response(ctx, false, "资源分类ID非法:"+err.Error(), nil)
 			return
 		}
+		rm := &models.ResourceModel{Type: i}
+		model, err := rm.First()
+		if model != nil {
+			response(ctx, false, "当前资源分类已经被占用,不能删除", nil)
+			return
+		}
 		id = append(id, i)
 	}
 
@@ -65,9 +71,7 @@ func ResourceTypeDelete(ctx iris.Context) {
 		response(ctx, false, "删除资源分类失败:"+err.Error(), nil)
 		return
 	}
-
 	response(ctx, true, "", nil)
-	return
 }
 
 //更新资源分类
