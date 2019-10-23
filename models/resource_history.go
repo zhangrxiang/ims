@@ -46,6 +46,12 @@ func (rh *ResourceHistoryModel) FindBy() (*[]ResourceHistoryModel, error) {
 	return &resources, model.Error
 }
 
+func (rh *ResourceHistoryModel) FindByIDs(ids []int) ([]ResourceHistoryModel, error) {
+	var resources []ResourceHistoryModel
+	model := db.DB.Order("id DESC").Where(ids).Find(&resources)
+	return resources, model.Error
+}
+
 func (rh *ResourceHistoryModel) FindValueBy(key string) ([]interface{}, error) {
 	var values []interface{}
 	model := db.DB.Model(rh).Pluck(key, &values)

@@ -104,6 +104,7 @@ func (web *Web) Init() {
 		project.Post("/add", controller.ProjectAdd)
 		project.Post("/update", controller.ProjectUpdate)
 		project.Post("/upgrade", controller.ProjectUpgrade)
+		project.Get("/detail", controller.ProjectDetail)
 		project.Get("/lists", controller.ProjectLists)
 		project.Get("/delete", controller.ProjectDelete)
 		project.Get("/download", controller.ProjectDownload)

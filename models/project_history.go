@@ -68,9 +68,6 @@ func (ph *ProjectHistoryModel) Update() (*ProjectHistoryModel, error) {
 }
 
 func (ph *ProjectHistoryModel) FindValueBy(key string) ([]interface{}, error) {
-	if key == "" {
-		return nil, ErrorParams
-	}
 	var values []interface{}
 	model := db.DB.Model(ph).Where(ph).Pluck(key, &values)
 	return values, model.Error

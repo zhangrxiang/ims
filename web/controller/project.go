@@ -2,6 +2,7 @@ package controller
 
 import (
 	"archive/zip"
+	"github.com/elliotchance/pie/pie"
 	"github.com/kataras/iris"
 	"io/ioutil"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"path"
 	"simple-ims/models"
 	"simple-ims/utils"
+	"strings"
 	"time"
 )
 
@@ -190,12 +192,44 @@ func ProjectAdd(ctx iris.Context) {
 	response(ctx, true, "保存项目成功", model)
 }
 
+//项目详情
+func ProjectDetail(ctx iris.Context) {
+	id, err := ctx.URLParamInt("id")
+	if err != nil || id < 1 {
+		response(ctx, false, "项目ID不合法", nil)
+		return
+	}
+	pm := &models.ProjectModel{ID: id}
+	model, err := pm.FirstBy()
+	if err != nil || model == nil {
+		response(ctx, false, "查找项目失败", nil)
+		return
+	}
+	if model.PHId == 0 {
+		response(ctx, true, "", nil)
+		return
+	}
+	ph := &models.ProjectHistoryModel{ID: model.PHId}
+	ph, err = ph.First()
+	if err != nil || ph == nil {
+		response(ctx, false, "查找项目版本失败", nil)
+		return
+	}
+	var RHIds pie.Strings
+	RHIds = strings.Split(ph.RHIds, ",")
+	rh := models.ResourceHistoryModel{}
+	rhs, err := rh.FindByIDs(RHIds.Ints())
+	if err != nil || len(rhs) == 0 {
+		response(ctx, false, "查找资源失败", nil)
+		return
+	}
+	response(ctx, true, "查找项目详情成功", rhs)
+}
+
 //项目更新
 func ProjectUpdate(ctx iris.Context) {
 	id, err := ctx.PostValueInt("id")
 	if err != nil || id < 1 {
-		log.Println(id)
-		log.Println(ctx.PostValue("id"))
 		response(ctx, false, "项目ID不合法", nil)
 		return
 	}
