@@ -15,7 +15,7 @@ import (
 //项目删除
 func ProjectDelete(ctx iris.Context) {
 	id := ctx.FormValue("id")
-	ids := utils.StrToIntAlice(id, ",")
+	ids := utils.StrToIntSlice(id, ",")
 	if ids == nil {
 		response(ctx, false, "项目ID非法", nil)
 		return
@@ -125,7 +125,7 @@ func ProjectUpgrade(ctx iris.Context) {
 	}
 	w := zip.NewWriter(fZip)
 	defer w.Close()
-	for _, id := range utils.StrToIntAlice(model.RHIds, ",") {
+	for _, id := range utils.StrToIntSlice(model.RHIds, ",") {
 		rhm := models.ResourceHistoryModel{
 			ID: id,
 		}

@@ -108,7 +108,7 @@ func UserRegister(ctx iris.Context) {
 func UserDelete(ctx iris.Context) {
 
 	id := ctx.FormValue("id")
-	ids := utils.StrToIntAlice(id, ",")
+	ids := utils.StrToIntSlice(id, ",")
 	if ids == nil {
 		response(ctx, false, "用户ID非法", nil)
 		return

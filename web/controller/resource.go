@@ -1,10 +1,12 @@
 package controller
 
 import (
+	"github.com/elliotchance/pie/pie"
 	"github.com/kataras/iris"
 	"simple-ims/models"
 	"simple-ims/utils"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -164,25 +166,50 @@ func ResourceUpgrade(ctx iris.Context) {
 
 //删除资源
 func ResourceDelete(ctx iris.Context) {
-	idsStr := ctx.FormValue("id")
-	ids := utils.StrToIntAlice(idsStr, ",")
-
-	if ids == nil {
+	id, err := ctx.URLParamInt("id")
+	if err != nil {
 		response(ctx, false, "资源ID不合法", nil)
 		return
 	}
 
-	resourceModel := &models.ResourceModel{}
-	_, err := resourceModel.FindByIds(ids)
+	rm := &models.ResourceModel{ID: id}
+	rm, err = rm.First()
 	if err != nil {
 		response(ctx, false, "查找要删除的资源失败:"+err.Error(), nil)
 		return
 	}
-	_, err = resourceModel.DeleteByIds(ids)
+
+	rh := &models.ResourceHistoryModel{ResourceID: rm.ID}
+	var ids pie.Ints
+	ids, err = rh.FindIDBy()
 	if err != nil {
-		response(ctx, false, "删除资源失败:"+err.Error(), nil)
+		response(ctx, false, "查找所有要删除的历史资源版本失败:"+err.Error(), nil)
 		return
 	}
+	ph := &models.ProjectHistoryModel{}
+	var rhIds pie.Strings
+	rhIds, err = ph.FindRHIDs()
+	if err != nil {
+		response(ctx, false, "查找项目失败:"+err.Error(), nil)
+		return
+	}
+	rhIds = strings.Split(strings.Join(rhIds, ","), ",")
+	added, removed := ids.Diff(rhIds.Unique().Ints().Sort())
+	if len(removed) != len(ids) || len(added) != len(rhIds) {
+		response(ctx, false, "当前资源已经被项目占用,禁止删除", nil)
+		return
+	}
+	err = rh.DeleteBy()
+	if err != nil {
+		response(ctx, false, "删除所有资源版本失败", nil)
+		return
+	}
+	err = rm.DeleteBy()
+	if err != nil {
+		response(ctx, false, "删除资源失败", nil)
+		return
+	}
+	response(ctx, true, "删除资源成功", nil)
 	//go func(resources *[]models.ResourceModel) {
 	//	for _, resource := range *resources {
 	//		err := os.Remove(resource.Path)
@@ -193,8 +220,7 @@ func ResourceDelete(ctx iris.Context) {
 	//		}
 	//	}
 	//}(resources)
-	response(ctx, true, "", nil)
-	return
+
 }
 
 //资源列表

@@ -66,3 +66,18 @@ func (ph *ProjectHistoryModel) Update() (*ProjectHistoryModel, error) {
 	}
 	return model.Value.(*ProjectHistoryModel), model.Error
 }
+
+func (ph *ProjectHistoryModel) FindValueBy(key string) ([]interface{}, error) {
+	if key == "" {
+		return nil, ErrorParams
+	}
+	var values []interface{}
+	model := db.DB.Model(ph).Where(ph).Pluck(key, &values)
+	return values, model.Error
+}
+
+func (ph *ProjectHistoryModel) FindRHIDs() ([]string, error) {
+	var values []string
+	model := db.DB.Model(ph).Where(ph).Pluck("rh_ids", &values)
+	return values, model.Error
+}

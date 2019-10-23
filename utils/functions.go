@@ -7,11 +7,33 @@ import (
 	"mime/multipart"
 	"os"
 	"path"
+	"reflect"
 	"strconv"
 	"strings"
 )
 
-func StrToIntAlice(str, sep string) []int {
+func Duplicate(a interface{}) (ret []interface{}) {
+	va := reflect.ValueOf(a)
+	for i := 0; i < va.Len(); i++ {
+		if i > 0 && reflect.DeepEqual(va.Index(i-1).Interface(), va.Index(i).Interface()) {
+			continue
+		}
+		ret = append(ret, va.Index(i).Interface())
+	}
+	return ret
+}
+
+func ElementExists(str1, str2 []interface{}) bool {
+	for _, v := range str1 {
+		for _, v2 := range str2 {
+			if v == v2 {
+				return true
+			}
+		}
+	}
+	return false
+}
+func StrToIntSlice(str, sep string) []int {
 	var intStr []int
 	split := strings.Split(str, sep)
 	for _, v := range split {

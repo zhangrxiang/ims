@@ -87,3 +87,8 @@ func (r *ResourceModel) Increment() (*ResourceModel, error) {
 	model := db.DB.Model(r).Update("download", gorm.Expr("download + 1"))
 	return model.Value.(*ResourceModel), model.Error
 }
+
+func (r *ResourceModel) DeleteBy() error {
+	model := db.DB.Model(r).Delete(r)
+	return model.Error
+}

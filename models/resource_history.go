@@ -45,3 +45,20 @@ func (rh *ResourceHistoryModel) FindBy() (*[]ResourceHistoryModel, error) {
 	model := db.DB.Order("id DESC").Find(&resources, "resource_id = ?", rh.ResourceID)
 	return &resources, model.Error
 }
+
+func (rh *ResourceHistoryModel) FindValueBy(key string) ([]interface{}, error) {
+	var values []interface{}
+	model := db.DB.Model(rh).Pluck(key, &values)
+	return values, model.Error
+}
+
+func (rh *ResourceHistoryModel) FindIDBy() ([]int, error) {
+	var values []int
+	model := db.DB.Model(rh).Where(rh).Pluck("id", &values)
+	return values, model.Error
+}
+
+func (rh *ResourceHistoryModel) DeleteBy() error {
+	model := db.DB.Model(rh).Delete(rh)
+	return model.Error
+}
