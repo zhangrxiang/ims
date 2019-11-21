@@ -27,15 +27,15 @@ func ResourceAdd(ctx iris.Context) {
 	if user == nil {
 		return
 	}
-	rm := models.ResourceModel{
+	rm := &models.ResourceModel{
 		UserId: user.ID,
 		Name:   name,
 		Type:   t,
 		Desc:   desc,
 	}
-	_, err = rm.Insert()
+	rm, err = rm.Insert()
 	if err != nil {
-		response(ctx, false, "保存资源失败:"+err.Error(), nil)
+		response(ctx, false, "保存资源失败:"+err.Error(), rm)
 		return
 	}
 	response(ctx, true, "保存资源成功", nil)
@@ -109,7 +109,9 @@ func ResourceUpgrade(ctx iris.Context) {
 			return
 		}
 
-		defer file.Close()
+		defer func() {
+			_ = file.Close()
+		}()
 
 		uploadDir := "uploads/" + time.Now().Format("2006/01/")
 		if !utils.Mkdir(uploadDir) {

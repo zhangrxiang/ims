@@ -3,9 +3,9 @@ package web
 import (
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
-	"github.com/kataras/iris/middleware/logger"
 	"log"
 	"simple-ims/models"
+	"simple-ims/utils"
 	"simple-ims/web/controller"
 	"simple-ims/web/middleware"
 	"sync"
@@ -33,9 +33,6 @@ func NewOnceWeb() *Web {
 }
 
 func (web *Web) Init() {
-	web.app.Logger().SetOutput(newLogFile())
-	web.app.Logger().SetLevel("warn")
-	web.app.Use(logger.New())
 	web.app.Configure(iris.WithConfiguration(iris.Configuration{
 		Charset: "UTF-8",
 	}))
@@ -46,6 +43,7 @@ func (web *Web) Init() {
 	web.app.SPA(web.app.StaticHandler("./www", false, false))
 
 	models.GetDBInstance()
+	utils.LoadLogInit()
 
 	//ping
 	web.app.Get("/ping", func(context context.Context) {
@@ -127,6 +125,7 @@ func (web *Web) Init() {
 	//})
 
 	go func() {
+		utils.Info("web start...")
 		err := web.app.Run(
 			iris.Addr(":80"),
 			iris.WithoutServerError(iris.ErrServerClosed),

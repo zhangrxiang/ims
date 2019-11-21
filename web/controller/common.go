@@ -5,6 +5,7 @@ import (
 	"github.com/iris-contrib/middleware/jwt"
 	"github.com/kataras/iris"
 	"simple-ims/models"
+	"simple-ims/utils"
 )
 
 type Message struct {
@@ -15,7 +16,6 @@ type Message struct {
 
 //响应客户端数据
 func response(ctx iris.Context, success bool, errMsg string, data interface{}) {
-
 	if data == nil {
 		data = []int{}
 	}
@@ -24,16 +24,12 @@ func response(ctx iris.Context, success bool, errMsg string, data interface{}) {
 		ErrMsg:  errMsg,
 		Data:    data,
 	})
-	if success {
-		ctx.Application().Logger().Info(fmt.Sprintf("[success:%t],[err_msg:%s],[data:%t]", success, errMsg, data))
-	} else {
-		ctx.Application().Logger().Warn(fmt.Sprintf("[success:%t],[err_msg:%s],[data:%t]", success, errMsg, data))
+	if !success {
+		utils.Error(fmt.Sprintf("[success:%t],[err_msg:%s],[data:%t]", success, errMsg, data))
 	}
 	if err != nil {
-		ctx.Application().Logger().Warn("输出json数据失败,n:", n, err)
-		return
+		utils.Error("输出json数据失败,n:", n, err)
 	}
-	return
 }
 
 func auth(ctx iris.Context) *models.UserModel {

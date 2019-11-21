@@ -5,7 +5,6 @@ import (
 	"github.com/elliotchance/pie/pie"
 	"github.com/kataras/iris"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"simple-ims/models"
@@ -126,7 +125,7 @@ func ProjectUpgrade(ctx iris.Context) {
 		return
 	}
 	w := zip.NewWriter(fZip)
-	defer w.Close()
+	defer func() { _ = w.Close() }()
 	for _, id := range utils.StrToIntSlice(model.RHIds, ",") {
 		rhm := models.ResourceHistoryModel{
 			ID: id,
@@ -153,7 +152,7 @@ func ProjectUpgrade(ctx iris.Context) {
 		}
 		err = w.SetComment(logStr)
 		if err != nil {
-			log.Println("向压缩包写入注释失败")
+			utils.Error("向压缩包写入注释失败")
 		}
 	}
 
@@ -278,10 +277,10 @@ func ProjectDownload(ctx iris.Context) {
 	model.Download += 1
 	_, err = model.Update()
 	if err != nil {
-		log.Println("更新项目下载量失败:", err)
+		utils.Error("更新项目下载量失败:", err)
 	}
 	err = ctx.SendFile(model.Path, path.Base(model.Path))
 	if err != nil {
-		log.Println("下载项目失败:", err)
+		utils.Error("下载项目失败:", err)
 	}
 }

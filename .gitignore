@@ -28,3 +28,4 @@ go.sum
 model.db
 logs
 uploads
+*.db
