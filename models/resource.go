@@ -19,7 +19,10 @@ type ResourceModel struct {
 
 func (r *ResourceModel) FindBy() ([]ResourceModel, error) {
 	var resources []ResourceModel
-	model := db.DB.Where(&r).Order("id DESC").Find(&resources)
+	model := db.DB.Where(&r).
+		Order("rh_id DESC").
+		Order("id DESC").
+		Find(&resources)
 	return resources, model.Error
 }
 

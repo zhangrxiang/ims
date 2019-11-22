@@ -15,14 +15,13 @@ import (
 
 //项目删除
 func ProjectDelete(ctx iris.Context) {
-	id := ctx.FormValue("id")
-	ids := utils.StrToIntSlice(id, ",")
-	if ids == nil {
-		response(ctx, false, "项目ID非法", nil)
+	id, err := ctx.URLParamInt("id")
+	if err != nil {
+		response(ctx, false, "项目ID非法"+err.Error(), nil)
 		return
 	}
-	pm := models.ProjectModel{}
-	_, err := pm.DeleteByIds(ids)
+	pm := &models.ProjectModel{ID: id}
+	_, err = pm.Delete()
 	if err != nil {
 		response(ctx, false, "删除项目失败:"+err.Error(), nil)
 		return
@@ -221,6 +220,13 @@ func ProjectDetail(ctx iris.Context) {
 	if err != nil || len(rhs) == 0 {
 		response(ctx, false, "查找资源失败", nil)
 		return
+	}
+	for k, v := range rhs {
+		rm := &models.ResourceModel{ID: v.ResourceID}
+		rm, _ = rm.First()
+		if rm != nil {
+			rhs[k].File = rm.Name
+		}
 	}
 	response(ctx, true, "查找项目详情成功", rhs)
 }

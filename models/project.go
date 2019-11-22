@@ -15,6 +15,11 @@ type ProjectModel struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+func (p *ProjectModel) Delete() (*ProjectModel, error) {
+	model := db.DB.Delete(p)
+	return model.Value.(*ProjectModel), model.Error
+}
+
 //根据ID删除
 func (p *ProjectModel) DeleteByIds(ids []int) (*ProjectModel, error) {
 	model := db.DB.Where(ids).Delete(p)

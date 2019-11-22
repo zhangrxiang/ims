@@ -106,7 +106,6 @@ func (web *Web) Init() {
 		project.Get("/lists", controller.ProjectLists)
 		project.Get("/delete", controller.ProjectDelete)
 		project.Get("/download", controller.ProjectDownload)
-		//project.Get("/group-lists", v1.ResourceGroupLists)
 	}
 
 	projectHistory := web.app.Party(v1Api + "/project-history")
@@ -115,14 +114,6 @@ func (web *Web) Init() {
 	{
 		projectHistory.Get("/lists", controller.ProjectHistoryLists)
 	}
-
-	//web.app.OnErrorCode(iris.StatusNotFound, func(ctx iris.Context) {
-	//	_, _ = ctx.JSON(iris.Map{
-	//		"success": false,
-	//		"err_msg": iris.StatusNotFound,
-	//		"data":    []int{},
-	//	})
-	//})
 
 	go func() {
 		utils.Info("web start...")

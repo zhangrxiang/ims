@@ -201,7 +201,7 @@ func ResourceDelete(ctx iris.Context) {
 		response(ctx, false, "当前资源已经被项目占用,禁止删除", nil)
 		return
 	}
-	err = rh.DeleteBy()
+	err = rh.DeleteBy(ids)
 	if err != nil {
 		response(ctx, false, "删除所有资源版本失败", nil)
 		return

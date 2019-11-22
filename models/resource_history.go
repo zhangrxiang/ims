@@ -15,7 +15,7 @@ type ResourceHistoryModel struct {
 	Path       string    `json:"path"`
 	Hash       string    `json:"hash"`
 	Download   int       `json:"download"`
-	CreatedAt  time.Time `json:"create_at"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 func (rh *ResourceHistoryModel) Increment() (*ResourceHistoryModel, error) {
@@ -64,7 +64,7 @@ func (rh *ResourceHistoryModel) FindIDBy() ([]int, error) {
 	return values, model.Error
 }
 
-func (rh *ResourceHistoryModel) DeleteBy() error {
-	model := db.DB.Model(rh).Delete(rh)
+func (rh *ResourceHistoryModel) DeleteBy(ids []int) error {
+	model := db.DB.Model(rh).Where(ids).Delete(rh)
 	return model.Error
 }
