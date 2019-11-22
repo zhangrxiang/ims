@@ -19,7 +19,7 @@ type ProjectModel struct {
 func (p *ProjectModel) DeleteByIds(ids []int) (*ProjectModel, error) {
 	model := db.DB.Where(ids).Delete(p)
 	if model.RowsAffected == 0 {
-		return nil, NoRecordExists
+		return nil, nil
 	}
 	return model.Value.(*ProjectModel), model.Error
 }

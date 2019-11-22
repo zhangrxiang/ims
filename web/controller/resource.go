@@ -35,10 +35,10 @@ func ResourceAdd(ctx iris.Context) {
 	}
 	rm, err = rm.Insert()
 	if err != nil {
-		response(ctx, false, "保存资源失败:"+err.Error(), rm)
+		response(ctx, false, "保存资源失败:"+err.Error(), nil)
 		return
 	}
-	response(ctx, true, "保存资源成功", nil)
+	response(ctx, true, "保存资源成功", rm)
 }
 
 //更新资源

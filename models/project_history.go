@@ -20,7 +20,7 @@ type ProjectHistoryModel struct {
 func (ph *ProjectHistoryModel) DeleteByProjectId(projectId int) (*ProjectHistoryModel, error) {
 	model := db.DB.Where("project_id = ?", projectId).Delete(ph)
 	if model.RowsAffected == 0 {
-		return nil, NoRecordExists
+		return nil, nil
 	}
 	return model.Value.(*ProjectHistoryModel), model.Error
 }
