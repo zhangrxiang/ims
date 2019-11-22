@@ -403,9 +403,8 @@ func ResourceDownload(ctx iris.Context) {
 		return
 	}
 	downloadModel := models.DownloadModel{
-		RHId:     historyModel.ID,
-		UserId:   userModel.ID,
-		CreateAt: time.Now(),
+		RHId:   historyModel.ID,
+		UserId: userModel.ID,
 	}
 	_, err = downloadModel.Insert()
 	if err != nil {
