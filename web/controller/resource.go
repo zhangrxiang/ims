@@ -196,8 +196,9 @@ func ResourceDelete(ctx iris.Context) {
 		return
 	}
 	rhIds = strings.Split(strings.Join(rhIds, ","), ",")
-	added, removed := ids.Diff(rhIds.Unique().Ints().Sort())
-	if len(removed) != len(ids) || len(added) != len(rhIds) {
+	compIDs := rhIds.Unique().Ints().Sort()
+	added, removed := ids.Diff(compIDs)
+	if len(removed) != len(ids) || len(added) != len(compIDs) {
 		response(ctx, false, "当前资源已经被项目占用,禁止删除", nil)
 		return
 	}
