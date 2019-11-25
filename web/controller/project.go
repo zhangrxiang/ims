@@ -149,7 +149,7 @@ func ProjectUpgrade(ctx iris.Context) {
 			response(ctx, false, "将文件内容写入压缩包失败"+err.Error(), nil)
 			return
 		}
-		err = w.SetComment(logStr)
+		err = w.SetComment("更新日志: " + logStr + "\n\n" + "项目描述: " + pm.Desc)
 		if err != nil {
 			utils.Error("向压缩包写入注释失败")
 		}
