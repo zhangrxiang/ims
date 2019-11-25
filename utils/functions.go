@@ -7,32 +7,10 @@ import (
 	"mime/multipart"
 	"os"
 	"path"
-	"reflect"
 	"strconv"
 	"strings"
 )
 
-func Duplicate(a interface{}) (ret []interface{}) {
-	va := reflect.ValueOf(a)
-	for i := 0; i < va.Len(); i++ {
-		if i > 0 && reflect.DeepEqual(va.Index(i-1).Interface(), va.Index(i).Interface()) {
-			continue
-		}
-		ret = append(ret, va.Index(i).Interface())
-	}
-	return ret
-}
-
-func ElementExists(str1, str2 []interface{}) bool {
-	for _, v := range str1 {
-		for _, v2 := range str2 {
-			if v == v2 {
-				return true
-			}
-		}
-	}
-	return false
-}
 func StrToIntSlice(str, sep string) []int {
 	var intStr []int
 	split := strings.Split(str, sep)
@@ -61,7 +39,7 @@ func Mkdir(p string) bool {
 func CopyFile(p string, src multipart.File) error {
 	dst, err := os.OpenFile(p, os.O_RDWR|os.O_CREATE, 0777)
 	defer func() {
-		dst.Close()
+		_ = dst.Close()
 	}()
 	if err != nil {
 		return err
@@ -93,6 +71,7 @@ func FileName(p string, version string) string {
 	return strings.TrimSuffix(path.Base(p), path.Ext(p)) + "-" + version + path.Ext(p)
 }
 
+//版本比较 0.0.0
 func VersionCompare(v1, v2 string) int8 {
 	if v1 == v2 {
 		return 0
@@ -106,5 +85,5 @@ func VersionCompare(v1, v2 string) int8 {
 			return -1
 		}
 	}
-	return 1
+	return 0
 }

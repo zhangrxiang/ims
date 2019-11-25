@@ -83,10 +83,10 @@ func ProjectUpgrade(ctx iris.Context) {
 		response(ctx, false, "请输入版本号,选择对应资源", nil)
 		return
 	}
-	pm := models.ProjectModel{
+	pm := &models.ProjectModel{
 		ID: projectId,
 	}
-	projectModel, err := pm.FirstBy()
+	pm, err = pm.FirstBy()
 	if err != nil {
 		response(ctx, false, "获取当前项目详情失败:"+err.Error(), nil)
 		return
@@ -104,7 +104,7 @@ func ProjectUpgrade(ctx iris.Context) {
 		response(ctx, false, "创建文件夹失败", nil)
 		return
 	}
-	zipDir := uploadDir + utils.FileName(projectModel.Name, version) + ".zip"
+	zipDir := uploadDir + utils.FileName(pm.Name, version) + ".zip"
 	phm = &models.ProjectHistoryModel{
 		ProjectId: projectId,
 		Version:   version,
@@ -149,7 +149,14 @@ func ProjectUpgrade(ctx iris.Context) {
 			response(ctx, false, "将文件内容写入压缩包失败"+err.Error(), nil)
 			return
 		}
-		err = w.SetComment("更新日志: " + logStr + "\n\n" + "项目描述: " + pm.Desc)
+		comment := ""
+		if logStr != "" {
+			comment = "更新日志: " + logStr + "\n\n"
+		}
+		if pm.Desc != "" {
+			comment += "项目描述: " + pm.Desc
+		}
+		err = w.SetComment(comment)
 		if err != nil {
 			utils.Error("向压缩包写入注释失败")
 		}
