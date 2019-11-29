@@ -2,6 +2,7 @@ package controller
 
 import (
 	"archive/zip"
+	"fmt"
 	"github.com/elliotchance/pie/pie"
 	"github.com/kataras/iris"
 	"io/ioutil"
@@ -42,6 +43,7 @@ func ProjectLists(ctx iris.Context) {
 		models.ProjectModel
 		Version  string `json:"version"`
 		Download int    `json:"download"`
+		Log      string `json:"log"`
 	}
 	var list []item
 	pm := models.ProjectModel{}
@@ -61,9 +63,9 @@ func ProjectLists(ctx iris.Context) {
 		}
 		if project == nil {
 			v.UpdatedAt = v.CreatedAt
-			list = append(list, item{v, "", 0})
+			list = append(list, item{v, "", 0, ""})
 		} else {
-			list = append(list, item{v, project.Version, project.Download})
+			list = append(list, item{v, project.Version, project.Download, project.Log})
 		}
 	}
 	response(ctx, true, "获取项目列表成功", list)
@@ -124,6 +126,7 @@ func ProjectUpgrade(ctx iris.Context) {
 		return
 	}
 	w := zip.NewWriter(fZip)
+	resourceLog := ""
 	defer func() { _ = w.Close() }()
 	for _, id := range utils.StrToIntSlice(model.RHIds, ",") {
 		rhm := models.ResourceHistoryModel{
@@ -149,19 +152,17 @@ func ProjectUpgrade(ctx iris.Context) {
 			response(ctx, false, "将文件内容写入压缩包失败"+err.Error(), nil)
 			return
 		}
-		comment := ""
-		if logStr != "" {
-			comment = "更新日志: " + logStr + "\n\n"
-		}
-		if pm.Desc != "" {
-			comment += "项目描述: " + pm.Desc
-		}
-		err = w.SetComment(comment)
-		if err != nil {
-			utils.Error("向压缩包写入注释失败")
-		}
+		resourceLog += fmt.Sprintf("\t%s:\t%s\n", resourceHistoryModel.File, resourceHistoryModel.Log)
 	}
-
+	comment := ""
+	comment += "项目描述: " + pm.Desc + "\n\n"
+	comment += "项目日志: " + logStr + "\n\n"
+	comment += "资源日志:\n" + resourceLog + "\n\n"
+	comment += "版权所有,侵权必究, Copyright ©无锡亚天光电科技有限公司"
+	err = w.SetComment(comment)
+	if err != nil {
+		utils.Error("向压缩包写入注释失败")
+	}
 	pm.PHId = model.ID
 	_, err = pm.Update()
 	if err != nil {
