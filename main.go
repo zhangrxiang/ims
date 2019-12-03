@@ -3,12 +3,22 @@ package main
 import (
 	"fmt"
 	"github.com/judwhite/go-svc/svc"
+	"github.com/zhangrxiang/soft-version/src"
 	"log"
+	"os"
 	"simple-ims/web"
 	"sync"
 )
 
 func main() {
+	if len(os.Args) > 1 {
+		soft.NewCommand().RunCallback(run).Parse()
+	} else {
+		run()
+	}
+}
+
+func run() {
 	prg := &Program{}
 	if err := svc.Run(prg); err != nil {
 		log.Fatal(err)

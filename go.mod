@@ -54,5 +54,6 @@ require (
 	github.com/yudai/gojsondiff v1.0.0 // indirect
 	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
 	github.com/yudai/pp v2.0.1+incompatible // indirect
+	github.com/zhangrxiang/soft-version v0.0.0-20191203015725-0313eb1b5192
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 // indirect
 )
