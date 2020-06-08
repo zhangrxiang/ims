@@ -126,7 +126,7 @@ func ResourceUpgrade(ctx iris.Context) {
 		}
 		model, err := resourceHistoryModel.FirstBy()
 		if model != nil {
-			response(ctx, true, "相同的文件hash已存在:"+model.Hash, iris.Map{
+			response(ctx, false, "相同的文件hash已存在:"+model.Hash, iris.Map{
 				"resource": model,
 			})
 			return

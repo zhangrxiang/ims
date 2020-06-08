@@ -118,7 +118,7 @@ func (web *Web) Init() {
 	go func() {
 		utils.Info("web start...")
 		err := web.app.Run(
-			iris.Addr(":80"),
+			iris.Addr(":5050"),
 			iris.WithoutServerError(iris.ErrServerClosed),
 			iris.WithOptimizations,
 		)
