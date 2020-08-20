@@ -49,6 +49,14 @@ func (web *Web) Init() {
 	web.app.Get("/ping", func(context context.Context) {
 		_, _ = context.WriteString("PONG")
 	})
+
+	tmp := web.app.Party(v1Api + "/tmp")
+	{
+		tmp.Get("/lists", controller.TmpUpLists)
+		tmp.Post("/upload", controller.TmpUpload)
+		tmp.Get("/download", controller.TmpDownload)
+	}
+
 	//用户
 	web.app.Get(v1Api+"/user/login", controller.UserLogin)
 	user := web.app.Party(v1Api + "/user")
