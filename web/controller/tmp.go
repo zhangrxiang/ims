@@ -1,7 +1,10 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/kataras/iris"
+	"io/ioutil"
+	"os"
 	"simple-ims/utils"
 	"time"
 )
@@ -17,6 +20,41 @@ var TmpFiles = map[string]TmpFile{}
 
 func TmpUpLists(ctx iris.Context) {
 	response(ctx, true, "", TmpFiles)
+}
+
+func init() {
+	go func() {
+		week := time.Hour * 24 * 7
+		t := time.NewTicker(week)
+		for {
+			select {
+			case <-t.C:
+				for k, f := range TmpFiles {
+					if time.Now().Sub(f.Time) > week {
+						err := os.Remove(f.Path)
+						if err != nil {
+							utils.Error(fmt.Sprintf("删除 %s 失败: %s", f.Name, err))
+						}
+						delete(TmpFiles, k)
+					}
+				}
+
+				dir, err := ioutil.ReadDir("uploads/tmp/")
+				if err != nil {
+					utils.Error(fmt.Sprintf("ReadDir uploads/tmp/ 失败: %s", err))
+					break
+				}
+				for _, f := range dir {
+					if !f.IsDir() && time.Now().Sub(f.ModTime()) > week*4 {
+						err := os.Remove("uploads/tmp/" + f.Name())
+						if err != nil {
+							utils.Error(fmt.Sprintf("删除 %s 失败: %s", f.Name(), err))
+						}
+					}
+				}
+			}
+		}
+	}()
 }
 
 func TmpUpload(ctx iris.Context) {
