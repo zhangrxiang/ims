@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/elliotchance/pie/pie"
 	"github.com/kataras/iris"
+	"path"
 	"simple-ims/models"
 	"simple-ims/utils"
 	"strconv"
@@ -413,7 +414,7 @@ func ResourceDownload(ctx iris.Context) {
 		return
 	}
 
-	err = ctx.SendFile(historyModel.Path, utils.FileName(historyModel.File, historyModel.Version))
+	err = ctx.SendFile(historyModel.Path, path.Base(historyModel.Path))
 	if err != nil {
 		response(ctx, false, "文件不存在"+err.Error(), nil)
 	}

@@ -40,10 +40,10 @@ func (rh *ResourceHistoryModel) FirstBy() (*ResourceHistoryModel, error) {
 }
 
 //多数据查询
-func (rh *ResourceHistoryModel) FindBy() (*[]ResourceHistoryModel, error) {
+func (rh *ResourceHistoryModel) FindBy() ([]ResourceHistoryModel, error) {
 	var resources []ResourceHistoryModel
 	model := db.DB.Order("id DESC").Find(&resources, "resource_id = ?", rh.ResourceID)
-	return &resources, model.Error
+	return resources, model.Error
 }
 
 func (rh *ResourceHistoryModel) FindByIDs(ids []int) ([]ResourceHistoryModel, error) {
@@ -64,7 +64,22 @@ func (rh *ResourceHistoryModel) FindIDBy() ([]int, error) {
 	return values, model.Error
 }
 
+//更新
+func (rh *ResourceHistoryModel) Update() (*ResourceHistoryModel, error) {
+	resource := &ResourceHistoryModel{}
+	model := db.DB.Model(resource).Updates(rh)
+	if model.RowsAffected == 0 {
+		return nil, NoRecordExists
+	}
+	return model.Value.(*ResourceHistoryModel), model.Error
+}
+
 func (rh *ResourceHistoryModel) DeleteBy(ids []int) error {
 	model := db.DB.Model(rh).Where(ids).Delete(rh)
+	return model.Error
+}
+
+func (rh *ResourceHistoryModel) Delete() error {
+	model := db.DB.Model(rh).Delete(rh)
 	return model.Error
 }

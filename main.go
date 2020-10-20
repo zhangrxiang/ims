@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/judwhite/go-svc/svc"
-	"github.com/zhangrxiang/soft-version/src"
+	"github.com/zing-dev/soft-version/src"
 	"log"
 	"os"
 	"simple-ims/web"

@@ -1,8 +1,9 @@
 module simple-ims
 
-go 1.12
+go 1.4
 
 require (
+	github.com/360EntSecGroup-Skylar/excelize v1.4.1
 	github.com/Joker/jade v1.0.0 // indirect
 	github.com/Shopify/goreferrer v0.0.0-20181106222321-ec9c9a553398 // indirect
 	github.com/ajg/form v1.5.1 // indirect
@@ -46,6 +47,7 @@ require (
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.2.0
 	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945 // indirect
+	github.com/tealeg/xlsx v1.0.5
 	github.com/tebeka/strftime v0.1.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
@@ -55,5 +57,6 @@ require (
 	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
 	github.com/yudai/pp v2.0.1+incompatible // indirect
 	github.com/zhangrxiang/soft-version v0.0.6
+	github.com/zing-dev/soft-version v0.1.0
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 // indirect
 )

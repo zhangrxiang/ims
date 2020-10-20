@@ -21,6 +21,8 @@ var JWT = jwt.New(jwt.Config{
 		return jwt.FromAuthHeader(ctx)
 	}, jwt.FromParameter("token"), func(ctx context.Context) (string, error) {
 		return ctx.PostValue("token"), nil
+	}, jwt.FromParameter("token"), func(ctx context.Context) (string, error) {
+		return ctx.URLParam("token"), nil
 	}),
 	SigningMethod: jwt.SigningMethodHS256,
 	ErrorHandler: func(context context.Context, err error) {

@@ -23,9 +23,10 @@ func TmpUpLists(ctx iris.Context) {
 }
 
 func init() {
+	day := time.Hour * 24
+	week := day * 7
 	go func() {
-		week := time.Hour * 24 * 7
-		t := time.NewTicker(week)
+		t := time.NewTicker(day)
 		for {
 			select {
 			case <-t.C:
@@ -50,6 +51,8 @@ func init() {
 						if err != nil {
 							utils.Error(fmt.Sprintf("删除 %s 失败: %s", f.Name(), err))
 						}
+					} else {
+						utils.Info(f.Name(), "未删除", !f.IsDir(), time.Now().Sub(f.ModTime()) > week*4)
 					}
 				}
 			}

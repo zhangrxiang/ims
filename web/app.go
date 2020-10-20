@@ -99,6 +99,8 @@ func (web *Web) Init() {
 	resourceHistory.Use(middleware.JWT)
 	resourceHistory.Use(middleware.Auth)
 	{
+		resourceHistory.Get("/delete", controller.ResourceHistoryDelete)
+		resourceHistory.Post("/update", controller.ResourceHistoryUpdate)
 		resourceHistory.Get("/lists", controller.ResourceHistoryLists)
 	}
 

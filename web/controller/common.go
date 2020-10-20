@@ -19,16 +19,16 @@ func response(ctx iris.Context, success bool, errMsg string, data interface{}) {
 	if data == nil {
 		data = []int{}
 	}
-	n, err := ctx.JSON(Message{
+	_, err := ctx.JSON(Message{
 		Success: success,
 		ErrMsg:  errMsg,
 		Data:    data,
 	})
 	if !success {
-		utils.Error(fmt.Sprintf("[success:%t],[err_msg:%s],[data:%t]", success, errMsg, data))
+		utils.Error(fmt.Sprintf("[message:%s],[data:%t]", errMsg, data))
 	}
 	if err != nil {
-		utils.Error("输出json数据失败,n:", n, err)
+		utils.Error("输出json数据失败： ", err)
 	}
 }
 
