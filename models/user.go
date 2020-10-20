@@ -34,10 +34,10 @@ func (u *UserModel) FindByID() (*UserModel, error) {
 	return user, model.Error
 }
 
-func (u *UserModel) All() (*[]UserModel, error) {
+func (u *UserModel) All() ([]UserModel, error) {
 	var users []UserModel
 	model := db.DB.Order("id DESC").Find(&users)
-	return model.Value.(*[]UserModel), model.Error
+	return users, model.Error
 }
 
 func (u *UserModel) Insert() (*UserModel, error) {

@@ -100,6 +100,7 @@ func (web *Web) Init() {
 	resourceHistory.Use(middleware.Auth)
 	{
 		resourceHistory.Get("/delete", controller.ResourceHistoryDelete)
+		resourceHistory.Get("/rollback", controller.ResourceHistoryRollback)
 		resourceHistory.Post("/update", controller.ResourceHistoryUpdate)
 		resourceHistory.Get("/lists", controller.ResourceHistoryLists)
 	}

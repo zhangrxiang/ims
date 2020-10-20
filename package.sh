@@ -30,7 +30,6 @@ if [ ! -d "./production" ]; then
 fi
 
 tar -czvf ./production/${NAME}."${version}".tar.gz ${NAME}.exe \
-service.ini.example \
 uninstall.bat \
 install.bat \
 www

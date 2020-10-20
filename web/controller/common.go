@@ -25,7 +25,7 @@ func response(ctx iris.Context, success bool, errMsg string, data interface{}) {
 		Data:    data,
 	})
 	if !success {
-		utils.Error(fmt.Sprintf("[message:%s],[data:%t]", errMsg, data))
+		utils.Error(fmt.Sprintf("[message:%s],[data:%v]", errMsg, data))
 	}
 	if err != nil {
 		utils.Error("输出json数据失败： ", err)

@@ -61,11 +61,10 @@ func find(alice []int) {
 	for _, id := range alice {
 		model := &ResourceModel{}
 		model.ID = id
-		log.Println(">>>>>>>", id)
-		resourceModel, err := model.Find()
+		resourceModel, err := model.FindBy()
 		log.Println(resourceModel)
 		if err != nil {
-			//log.Fatalln(err)
+			log.Fatalln(err)
 		}
 	}
 }

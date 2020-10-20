@@ -30,3 +30,5 @@ logs
 uploads/
 *.db
 production
+www*
+!www

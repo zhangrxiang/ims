@@ -2,13 +2,13 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
-	"log"
 	"time"
 )
 
 type ResourceHistoryModel struct {
 	ID         int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
 	ResourceID int       `json:"resource_id" gorm:"not null"`
+	UserId     int       `json:"user_id"`
 	Version    string    `json:"version" gorm:"not null"`
 	Log        string    `json:"log"`
 	File       string    `json:"file"`
@@ -19,7 +19,6 @@ type ResourceHistoryModel struct {
 }
 
 func (rh *ResourceHistoryModel) Increment() (*ResourceHistoryModel, error) {
-	log.Println(rh)
 	model := db.DB.Model(rh).Update("download", gorm.Expr("download  + 1"))
 	return nil, model.Error
 }

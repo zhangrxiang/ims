@@ -11,7 +11,8 @@ import (
 	"strings"
 )
 
-const tarGz = ".tar.gz"
+const TarGz = ".tar.gz"
+const Zip = ".zip"
 
 func StrToIntSlice(str, sep string) []int {
 	var intStr []int
@@ -70,11 +71,11 @@ func Md5Str(value string) string {
 }
 
 func FileName(p string, version string) string {
-	if strings.HasSuffix(p, tarGz) {
+	if strings.HasSuffix(p, TarGz) {
 		if strings.Contains(p, version) {
 			return p
 		} else {
-			return strings.TrimSuffix(path.Base(p), tarGz) + "-" + version + tarGz
+			return strings.TrimSuffix(path.Base(p), TarGz) + "-" + version + TarGz
 		}
 	}
 	return strings.TrimSuffix(path.Base(p), path.Ext(p)) + "-" + version + path.Ext(p)

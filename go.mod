@@ -1,6 +1,6 @@
 module simple-ims
 
-go 1.4
+go 1.14
 
 require (
 	github.com/360EntSecGroup-Skylar/excelize v1.4.1
@@ -56,7 +56,6 @@ require (
 	github.com/yudai/gojsondiff v1.0.0 // indirect
 	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
 	github.com/yudai/pp v2.0.1+incompatible // indirect
-	github.com/zhangrxiang/soft-version v0.0.6
 	github.com/zing-dev/soft-version v0.1.0
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 // indirect
 )

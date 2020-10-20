@@ -4,12 +4,29 @@ import (
 	"github.com/kataras/iris"
 	"simple-ims/models"
 	"simple-ims/utils"
-	"strconv"
 	"time"
 )
 
+//todo
 func ResourceHistoryDelete(ctx iris.Context) {
 	id, err := ctx.URLParamInt("id")
+	if err != nil {
+		response(ctx, false, "资源版本ID不合法:"+err.Error(), nil)
+		return
+	}
+	rhm := &models.ResourceHistoryModel{}
+	rhm, err = rhm.FirstBy()
+	if err != nil {
+		return
+	}
+
+	if rhm.ID == id {
+		return
+	}
+}
+
+func ResourceHistoryRollback(ctx iris.Context) {
+	resourceId, err := ctx.URLParamInt("resource_id")
 	if err != nil {
 		response(ctx, false, "资源ID不合法:"+err.Error(), nil)
 		return
@@ -18,7 +35,7 @@ func ResourceHistoryDelete(ctx iris.Context) {
 	if user == nil {
 		return
 	}
-	rm := &models.ResourceModel{ID: id}
+	rm := &models.ResourceModel{ID: resourceId}
 	rm, err = rm.First()
 	if err != nil {
 		response(ctx, false, "资源不存在:"+err.Error(), nil)
@@ -61,15 +78,17 @@ func ResourceHistoryUpdate(ctx iris.Context) {
 		response(ctx, false, "资源不存在:"+err.Error(), nil)
 		return
 	}
-
-	resourceHistoryModel := &models.ResourceHistoryModel{ID: rm.RHId}
+	id := ctx.PostValueIntDefault("id", 0)
+	if id == 0 {
+		id = rm.RHId
+	}
+	resourceHistoryModel := &models.ResourceHistoryModel{ID: id}
 	model, err := resourceHistoryModel.FirstBy()
 	if err != nil {
 		response(ctx, false, "当前版本不存在:"+err.Error(), nil)
 		return
 	}
 
-	logStr := ctx.PostValue("log")
 	file, info, err := ctx.FormFile("file")
 	if file != nil {
 		if err != nil {
@@ -89,7 +108,7 @@ func ResourceHistoryUpdate(ctx iris.Context) {
 			response(ctx, false, "获取文件MD5失败:"+err.Error(), nil)
 			return
 		}
-		resourceHistoryModel.Log = logStr
+		resourceHistoryModel.Log = ctx.PostValue("log")
 		resourceHistoryModel.File = info.Filename
 		resourceHistoryModel.Path = uploadDir + utils.FileName(info.Filename, resourceHistoryModel.Version)
 		err = utils.CopyFile(resourceHistoryModel.Path, file)
@@ -102,6 +121,8 @@ func ResourceHistoryUpdate(ctx iris.Context) {
 		return
 	}
 
+	user := auth(ctx)
+	resourceHistoryModel.UserId = user.ID
 	model, err = resourceHistoryModel.Update()
 	if err != nil {
 		response(ctx, false, "更新当前资源版本失败:"+err.Error(), nil)
@@ -124,22 +145,46 @@ func ResourceHistoryUpdate(ctx iris.Context) {
 }
 
 func ResourceHistoryLists(ctx iris.Context) {
+	type res struct {
+		models.ResourceHistoryModel
+		Username string `json:"username"`
+	}
+	var list []res
 
-	resourceIdStr := ctx.URLParam("resource_id")
-	resourceId, err := strconv.Atoi(resourceIdStr)
+	resourceId, err := ctx.URLParamInt("resource_id")
 	if err != nil {
 		response(ctx, false, "资源ID非法", nil)
 		return
 	}
-	model := models.ResourceHistoryModel{
-		ResourceID: resourceId,
-	}
-	historyModel, err := model.FindBy()
+	rhm := models.ResourceHistoryModel{ResourceID: resourceId}
+	rhms, err := rhm.FindBy()
 	if err != nil {
 		response(ctx, false, "获取历史版本失败", nil)
 		return
 	}
+	user := models.UserModel{}
+	users, err := user.All()
+	if err != nil {
+		return
+	}
+
+	for _, v := range rhms {
+		for _, u := range users {
+			if u.ID == v.UserId {
+				list = append(list, res{
+					ResourceHistoryModel: v,
+					Username:             u.Username,
+				})
+				break
+			} else if v.UserId == 0 {
+				list = append(list, res{
+					ResourceHistoryModel: v,
+				})
+				break
+			}
+		}
+	}
 	response(ctx, true, "", iris.Map{
-		"resources": historyModel,
+		"resources": list,
 	})
 }

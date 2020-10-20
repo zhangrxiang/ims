@@ -21,17 +21,16 @@ func ProjectDelete(ctx iris.Context) {
 		response(ctx, false, "项目ID非法"+err.Error(), nil)
 		return
 	}
+	phm := models.ProjectHistoryModel{}
+	_, err = phm.DeleteByProjectId(id)
+	if err != nil {
+		response(ctx, false, "删除当前项目历史所有版本失败:"+err.Error(), nil)
+		return
+	}
 	pm := &models.ProjectModel{ID: id}
 	_, err = pm.Delete()
 	if err != nil {
 		response(ctx, false, "删除项目失败:"+err.Error(), nil)
-		return
-	}
-
-	phm := models.ProjectHistoryModel{}
-	_, err = phm.DeleteByProjectId(pm.ID)
-	if err != nil {
-		response(ctx, false, "删除当前项目历史所有版本失败:"+err.Error(), nil)
 		return
 	}
 	response(ctx, true, "删除项目成功", nil)
@@ -53,9 +52,7 @@ func ProjectLists(ctx iris.Context) {
 		return
 	}
 	for _, v := range projects {
-		phm := models.ProjectHistoryModel{
-			ProjectId: v.ID,
-		}
+		phm := models.ProjectHistoryModel{ProjectId: v.ID}
 		project, err := phm.First()
 		if err != nil && err != models.NoRecordExists {
 			response(ctx, false, "获取项目版本失败:"+err.Error(), nil)
@@ -106,14 +103,14 @@ func ProjectUpgrade(ctx iris.Context) {
 		response(ctx, false, "创建文件夹失败", nil)
 		return
 	}
-	zipDir := uploadDir + utils.FileName(pm.Name, version) + ".zip"
+	zipDir := uploadDir + utils.FileName(pm.Name, version) + utils.Zip
 	phm = &models.ProjectHistoryModel{
 		ProjectId: projectId,
 		Version:   version,
 		Log:       logStr,
 		RHIds:     RHIds,
 		Path:      zipDir,
-		Hash:      utils.Md5Str(string(projectId) + version + logStr + RHIds),
+		Hash:      utils.Md5Str(string(rune(projectId)) + version + logStr + RHIds),
 	}
 	model, err := phm.Insert()
 	if err != nil {

@@ -146,6 +146,8 @@ func ResourceUpgrade(ctx iris.Context) {
 		return
 	}
 
+	user := auth(ctx)
+	resourceHistoryModel.UserId = user.ID
 	model, err = resourceHistoryModel.Insert()
 	if err != nil {
 		response(ctx, false, "添加资源版本失败:"+err.Error(), nil)

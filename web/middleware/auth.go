@@ -10,20 +10,23 @@ import (
 
 var Auth = NewAuth().Serve
 
+const (
+	admin      = "admin"
+	uploader   = "uploader"
+	downloader = "downloader"
+)
+
 type Authenticate struct {
-	AdminRoute    map[string]interface{}
-	OrdinaryRoute map[string]interface{}
+	Admin      map[string]interface{}
+	Downloader map[string]interface{}
+	Uploader   map[string]interface{}
 }
 
 func NewAuth() *Authenticate {
 	return &Authenticate{
-		AdminRoute: map[string]interface{}{
-			"user":             "*",
-			"resource":         "*",
-			"resource-type":    "*",
-			"resource-history": "*",
-		},
-		OrdinaryRoute: map[string]interface{}{
+		Admin:    map[string]interface{}{},
+		Uploader: map[string]interface{}{},
+		Downloader: map[string]interface{}{
 			"resource": []string{
 				"/resource-history/lists",
 				"/resource/group-lists",
@@ -46,11 +49,16 @@ func (a *Authenticate) Serve(ctx context.Context) {
 	claims := token.Claims.(jwt.MapClaims)
 	ctx.Values().Set("user", claims["user"])
 	switch claims["role"] {
-	case "admin":
+	case admin:
 		ctx.Next()
 		return
-	default:
-		for _, v := range a.OrdinaryRoute {
+	case uploader:
+		if !strings.Contains(currentRoute, "user") {
+			ctx.Next()
+			return
+		}
+	case downloader:
+		for _, v := range a.Downloader {
 			for _, v2 := range v.([]string) {
 				if v2 == currentRoute {
 					ctx.Next()
@@ -58,6 +66,7 @@ func (a *Authenticate) Serve(ctx context.Context) {
 				}
 			}
 		}
+	default:
 	}
 	ctx.StatusCode(http.StatusForbidden)
 	_, _ = ctx.JSON(iris.Map{
