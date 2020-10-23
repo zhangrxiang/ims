@@ -13,7 +13,17 @@ import (
 
 //用户列表
 func UserLists(ctx iris.Context) {
-	users, err := (&models.UserModel{}).All()
+	var (
+		user  = auth(ctx)
+		users []models.UserModel
+		err   error
+	)
+	if user.Role == models.Admin {
+		users, err = user.All()
+
+	} else if user.Role == models.Uploader {
+		users, err = user.Find()
+	}
 	if err != nil {
 		response(ctx, false, "无用户:"+err.Error(), nil)
 		return
@@ -39,10 +49,10 @@ func UserLogin(ctx iris.Context) {
 		Password: password,
 	}
 
-	model, err := user.Find()
+	model, err := user.Login()
 
 	if err != nil {
-		response(ctx, false, "登陆失败:"+err.Error(), nil)
+		response(ctx, false, "用户名或密码错误", nil)
 		return
 	}
 

@@ -5,32 +5,38 @@ import (
 	"time"
 )
 
+const (
+	Admin      = "admin"
+	Uploader   = "uploader"
+	Downloader = "downloader"
+)
+
 type UserModel struct {
-	ID        int       `json:"id",gorm:"primary_key;AUTO_INCREMENT"`
-	Username  string    `json:"username",gorm:"not null;unique;type:varchar(30)"`
-	Password  string    `json:"password",gorm:"not null;type:varchar(20)"`
+	ID        int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
+	Username  string    `json:"username" gorm:"not null;unique;type:varchar(30)"`
+	Password  string    `json:"password" gorm:"not null;type:varchar(20)"`
 	Role      string    `json:"role"`
-	Phone     string    `json:"phone",gorm:"not null"`
-	Mail      string    `json:"mail",gorm:"not null"`
+	Phone     string    `json:"phone" gorm:"not null"`
+	Mail      string    `json:"mail" gorm:"not null"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (u *UserModel) Find() (*UserModel, error) {
+func (u *UserModel) Find() ([]UserModel, error) {
+	var users []UserModel
+	model := db.DB.Model(u).Where("Id = ?", u.ID).Order("id DESC").Find(&users)
+	return users, model.Error
+}
+
+func (u *UserModel) Login() (*UserModel, error) {
 	user := &UserModel{}
 	model := db.DB.Where("username = ? AND password = ?", u.Username, u.Password).Find(user)
 	return user, model.Error
 }
 
-func (u *UserModel) FindByUsername() (*UserModel, error) {
+func (u *UserModel) ByUsername() (*UserModel, error) {
 	user := &UserModel{}
 	model := db.DB.Where("username = ?", u.Username).Find(user)
-	return user, model.Error
-}
-
-func (u *UserModel) FindByID() (*UserModel, error) {
-	user := &UserModel{}
-	model := db.DB.First(user, u.ID)
 	return user, model.Error
 }
 
@@ -41,7 +47,7 @@ func (u *UserModel) All() ([]UserModel, error) {
 }
 
 func (u *UserModel) Insert() (*UserModel, error) {
-	_, err := u.FindByUsername()
+	_, err := u.ByUsername()
 	if err == gorm.ErrRecordNotFound {
 		model := db.DB.Create(u)
 		return model.Value.(*UserModel), model.Error
@@ -58,7 +64,7 @@ func (u *UserModel) Delete(ids []int) (*UserModel, error) {
 }
 
 func (u *UserModel) Update() (*UserModel, error) {
-	userModel, err := u.FindByUsername()
+	userModel, err := u.ByUsername()
 	if err != gorm.ErrRecordNotFound && userModel != nil {
 		if userModel.ID != u.ID {
 			return nil, RecordExists

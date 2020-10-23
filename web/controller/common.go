@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-	"github.com/iris-contrib/middleware/jwt"
 	"github.com/kataras/iris"
 	"simple-ims/models"
 	"simple-ims/utils"
@@ -48,24 +47,4 @@ func auth(ctx iris.Context) *models.UserModel {
 		Phone:    user["phone"].(string),
 		Mail:     user["mail"].(string),
 	}
-}
-
-func authUser(ctx iris.Context) (*models.UserModel, error) {
-
-	user := ctx.Values().Get("user")
-	if user != nil {
-		return user.(*models.UserModel), nil
-	}
-	token := ctx.Values().Get("jwt").(*jwt.Token)
-	claims := token.Claims.(jwt.MapClaims)
-	model := &models.UserModel{
-		ID: int(claims["userId"].(float64)),
-	}
-	userModel, err := model.FindByID()
-	if err != nil {
-		return nil, err
-	}
-	ctx.Values().Set("user", userModel)
-
-	return userModel, nil
 }

@@ -43,7 +43,6 @@ func (web *Web) Init() {
 	web.app.SPA(web.app.StaticHandler("./www", false, false))
 
 	models.GetDBInstance()
-	utils.LoadLogInit()
 
 	//ping
 	web.app.Get("/ping", func(context context.Context) {

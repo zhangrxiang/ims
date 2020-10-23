@@ -9,10 +9,14 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
 )
 
-const TarGz = ".tar.gz"
-const Zip = ".zip"
+const (
+	TarGz       = ".tar.gz"
+	Zip         = ".zip"
+	LocalFormat = ".20060102"
+)
 
 func StrToIntSlice(str, sep string) []int {
 	var intStr []int
@@ -71,14 +75,14 @@ func Md5Str(value string) string {
 }
 
 func FileName(p string, version string) string {
+	version2 := time.Now().Format(LocalFormat) + "." + version
 	if strings.HasSuffix(p, TarGz) {
 		if strings.Contains(p, version) {
-			return p
-		} else {
-			return strings.TrimSuffix(path.Base(p), TarGz) + "-" + version + TarGz
+			return strings.ReplaceAll(p, version, version+version2)
 		}
+		return strings.TrimSuffix(path.Base(p), TarGz) + version2 + TarGz
 	}
-	return strings.TrimSuffix(path.Base(p), path.Ext(p)) + "-" + version + path.Ext(p)
+	return strings.TrimSuffix(path.Base(p), path.Ext(p)) + version2 + path.Ext(p)
 }
 
 //版本比较 0.0.0

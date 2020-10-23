@@ -5,16 +5,11 @@ import (
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 	"net/http"
+	"simple-ims/models"
 	"strings"
 )
 
 var Auth = NewAuth().Serve
-
-const (
-	admin      = "admin"
-	uploader   = "uploader"
-	downloader = "downloader"
-)
 
 type Authenticate struct {
 	Admin      map[string]interface{}
@@ -49,15 +44,13 @@ func (a *Authenticate) Serve(ctx context.Context) {
 	claims := token.Claims.(jwt.MapClaims)
 	ctx.Values().Set("user", claims["user"])
 	switch claims["role"] {
-	case admin:
+	case models.Admin:
 		ctx.Next()
 		return
-	case uploader:
-		if !strings.Contains(currentRoute, "user") {
-			ctx.Next()
-			return
-		}
-	case downloader:
+	case models.Uploader:
+		ctx.Next()
+		return
+	case models.Downloader:
 		for _, v := range a.Downloader {
 			for _, v2 := range v.([]string) {
 				if v2 == currentRoute {
