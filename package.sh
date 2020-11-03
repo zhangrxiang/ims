@@ -29,7 +29,14 @@ if [ ! -d "./production" ]; then
   mkdir ./production
 fi
 
-tar -czvf ./production/${NAME}."${version}".tar.gz ${NAME}.exe \
+cd ./www-dev && yarn build
+cd ..
+if [ ! -d "./www" ]; then
+  mkdir ./www
+fi
+rm -rf ./www/* && mv ./www-dev/dist/* www/
+
+tar -czvf ./production/${NAME}."${version}".tar.gz --exclude=www/js/*.map ${NAME}.exe \
 uninstall.bat \
 install.bat \
 www

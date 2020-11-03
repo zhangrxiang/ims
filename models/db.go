@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"simple-ims/utils"
 	"sync"
 )
 
@@ -52,13 +53,13 @@ func (db *DB) Init() {
 				for _, v := range []*UserModel{{
 					ID:       1,
 					Username: "admin",
-					Password: "123456",
-					Role:     "admin",
+					Password: utils.Encode("123456"),
+					Role:     Admin,
 				}, {
 					ID:       2,
 					Username: "atian",
-					Password: "123456",
-					Role:     "downloader",
+					Password: utils.Encode("123456"),
+					Role:     Downloader,
 				}} {
 					db.DB.Create(v)
 				}
