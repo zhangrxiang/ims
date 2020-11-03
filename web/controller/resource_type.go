@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/kataras/iris"
 	"simple-ims/models"
 	"strconv"
@@ -29,6 +30,7 @@ func ResourceTypeAdd(ctx iris.Context) {
 		return
 	}
 
+	log(ctx, fmt.Sprintf("添加资源分类:[ %s ],描述:[ %s ]", name, desc))
 	response(ctx, true, "", iris.Map{
 		"resource_type": model,
 		"timestamp":     time.Now().Unix(),
@@ -39,15 +41,15 @@ func ResourceTypeAdd(ctx iris.Context) {
 
 //删除资源分类
 func ResourceTypeDelete(ctx iris.Context) {
-
+	var (
+		names = ""
+		id    []int
+	)
 	ids := ctx.FormValue("id")
-
 	if ids == "" {
 		response(ctx, false, "资源分类ID不能为空", nil)
 		return
 	}
-
-	var id []int
 	split := strings.Split(ids, ",")
 	for _, v := range split {
 		i, err := strconv.Atoi(v)
@@ -55,59 +57,57 @@ func ResourceTypeDelete(ctx iris.Context) {
 			response(ctx, false, "资源分类ID非法:"+err.Error(), nil)
 			return
 		}
+		rt := &models.ResourceTypeModel{ID: i}
+		if rt, err := rt.First(); rt != nil && err == nil {
+			names += rt.Name
+		}
 		rm := &models.ResourceModel{Type: i}
-		model, err := rm.First()
-		if model != nil {
+		rm, err = rm.First()
+		if err == nil {
 			response(ctx, false, "当前资源分类已经被占用,不能删除", nil)
 			return
 		}
 		id = append(id, i)
 	}
 
-	resourceTypeModel := &models.ResourceTypeModel{}
-	_, err := resourceTypeModel.DeleteByIds(id)
+	rt := &models.ResourceTypeModel{}
+	_, err := rt.DeleteByIds(id)
 
 	if err != nil {
 		response(ctx, false, "删除资源分类失败:"+err.Error(), nil)
 		return
 	}
+	log(ctx, fmt.Sprintf("删除资源分类:[ %s ]", names))
 	response(ctx, true, "", nil)
 }
 
 //更新资源分类
 func ResourceTypeUpdate(ctx iris.Context) {
-
-	_id := ctx.FormValue("id")
-	name := ctx.FormValue("name")
-	desc := ctx.FormValue("desc")
-
-	if _id == "" {
-		response(ctx, false, "资源分类ID不能为空", nil)
-		return
-	}
-
-	id, err := strconv.Atoi(_id)
-
+	id, err := ctx.PostValueInt("id")
 	if err != nil {
 		response(ctx, false, "资源分类ID非法:"+err.Error(), nil)
 		return
 	}
-
-	resourceTypeModel := &models.ResourceTypeModel{
-		ID:   id,
-		Name: name,
-		Desc: desc,
+	name := ctx.FormValue("name")
+	desc := ctx.FormValue("desc")
+	rt := &models.ResourceTypeModel{ID: id}
+	rt, err = rt.First()
+	if err != nil {
+		response(ctx, false, "更新资源分类失败:"+err.Error(), nil)
+		return
 	}
-	_, err = resourceTypeModel.Update()
+	oldName := rt.Name
+	oldDesc := rt.Desc
+	rt.Name = name
+	rt.Desc = desc
+	_, err = rt.Update()
 
 	if err != nil {
 		response(ctx, false, "更新资源分类失败:"+err.Error(), nil)
 		return
 	}
-
+	log(ctx, fmt.Sprintf("更新资源分类名:[ %s ] -> [ %s ],分类描述:[ %s ] -> [ %s ]", oldName, rt.Name, oldDesc, desc))
 	response(ctx, true, "", nil)
-	return
-
 }
 
 //资源分类列表

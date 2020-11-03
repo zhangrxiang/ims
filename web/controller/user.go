@@ -23,10 +23,14 @@ func UserLists(ctx iris.Context) {
 
 	} else if user.Role == models.Uploader {
 		users, err = user.Find()
+
 	}
 	if err != nil {
 		response(ctx, false, "无用户:"+err.Error(), nil)
 		return
+	}
+	for k := range users {
+		users[k].Password = utils.Decode(users[k].Password)
 	}
 	response(ctx, true, "", iris.Map{
 		"users":     users,
@@ -46,7 +50,7 @@ func UserLogin(ctx iris.Context) {
 
 	user := models.UserModel{
 		Username: username,
-		Password: password,
+		Password: utils.Encode(password),
 	}
 
 	model, err := user.Login()
@@ -63,7 +67,7 @@ func UserLogin(ctx iris.Context) {
 		response(ctx, false, "生成token失败"+err.Error(), nil)
 		return
 	}
-
+	login(model)
 	response(ctx, true, "", iris.Map{
 		"user":       model,
 		"token":      token,
@@ -97,7 +101,7 @@ func UserRegister(ctx iris.Context) {
 
 	userModel := &models.UserModel{
 		Username: username,
-		Password: password,
+		Password: utils.Encode(password),
 		Mail:     mail,
 		Phone:    phone,
 		Role:     role,
@@ -165,11 +169,10 @@ func UserUpdate(ctx iris.Context) {
 		response(ctx, false, "请输入合法的手机号", nil)
 		return
 	}
-
 	userModel := &models.UserModel{
 		ID:       id,
 		Username: username,
-		Password: password,
+		Password: utils.Encode(password),
 		Mail:     mail,
 		Phone:    phone,
 		Role:     role,
@@ -180,7 +183,7 @@ func UserUpdate(ctx iris.Context) {
 		response(ctx, false, "修改用户失败:"+err.Error(), nil)
 		return
 	}
-
+	log(ctx, "更新用户信息")
 	response(ctx, true, "修改用户成功", iris.Map{
 		"user": model,
 	})

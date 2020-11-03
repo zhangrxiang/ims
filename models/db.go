@@ -37,6 +37,7 @@ func (db *DB) Init() {
 
 	for _, v := range []interface{}{
 		(*UserModel)(nil),
+		(*LogModel)(nil),
 		(*ResourceModel)(nil),
 		(*ResourceTypeModel)(nil),
 		(*ResourceHistoryModel)(nil),

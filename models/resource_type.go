@@ -13,6 +13,12 @@ type ResourceTypeModel struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+func (r *ResourceTypeModel) First() (*ResourceTypeModel, error) {
+	t := &ResourceTypeModel{}
+	model := db.DB.First(t, r.ID)
+	return t, model.Error
+}
+
 //查询所有
 func (r *ResourceTypeModel) All() ([]ResourceTypeModel, error) {
 	var resources []ResourceTypeModel

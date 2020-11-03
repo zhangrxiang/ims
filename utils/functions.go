@@ -18,6 +18,18 @@ const (
 	LocalFormat = ".20060102"
 )
 
+func Encode(str string) string {
+	return strings.Map(func(r rune) rune {
+		return r + 10
+	}, str)
+}
+
+func Decode(str string) string {
+	return strings.Map(func(r rune) rune {
+		return r - 10
+	}, str)
+}
+
 func StrToIntSlice(str, sep string) []int {
 	var intStr []int
 	split := strings.Split(str, sep)

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/kataras/iris"
 	"simple-ims/models"
 	"simple-ims/utils"
@@ -62,6 +63,7 @@ func ResourceHistoryRollback(ctx iris.Context) {
 		response(ctx, false, "更新版本失败:"+err.Error(), nil)
 		return
 	}
+	log(ctx, fmt.Sprintf("回滚版本[ %s ],资源ID [ %d ] -> [ %d ]", rm.Name, rhm2[0].ID, rhm2[1].ID))
 	response(ctx, true, "删除版本成功", nil)
 }
 
@@ -82,8 +84,8 @@ func ResourceHistoryUpdate(ctx iris.Context) {
 	if id == 0 {
 		id = rm.RHId
 	}
-	resourceHistoryModel := &models.ResourceHistoryModel{ID: id}
-	model, err := resourceHistoryModel.FirstBy()
+	rhm := &models.ResourceHistoryModel{ID: id}
+	rhm, err = rhm.FirstBy()
 	if err != nil {
 		response(ctx, false, "当前版本不存在:"+err.Error(), nil)
 		return
@@ -103,15 +105,15 @@ func ResourceHistoryUpdate(ctx iris.Context) {
 			return
 		}
 
-		resourceHistoryModel.Hash, err = utils.Md5File(file)
+		rhm.Hash, err = utils.Md5File(file)
 		if err != nil {
 			response(ctx, false, "获取文件MD5失败:"+err.Error(), nil)
 			return
 		}
-		resourceHistoryModel.Log = ctx.PostValue("log")
-		resourceHistoryModel.File = info.Filename
-		resourceHistoryModel.Path = uploadDir + utils.FileName(info.Filename, resourceHistoryModel.Version)
-		err = utils.CopyFile(resourceHistoryModel.Path, file)
+		rhm.Log = ctx.PostValue("log")
+		rhm.File = info.Filename
+		rhm.Path = uploadDir + utils.FileName(info.Filename, rhm.Version)
+		err = utils.CopyFile(rhm.Path, file)
 		if err != nil {
 			response(ctx, false, "保存文件失败:"+err.Error(), nil)
 			return
@@ -122,8 +124,8 @@ func ResourceHistoryUpdate(ctx iris.Context) {
 	}
 
 	user := auth(ctx)
-	resourceHistoryModel.UserId = user.ID
-	model, err = resourceHistoryModel.Update()
+	rhm.UserId = user.ID
+	rhm, err = rhm.Update()
 	if err != nil {
 		response(ctx, false, "更新当前资源版本失败:"+err.Error(), nil)
 		return
@@ -131,16 +133,16 @@ func ResourceHistoryUpdate(ctx iris.Context) {
 
 	resourceModel := &models.ResourceModel{
 		ID:   resourceID,
-		RHId: model.ID,
+		RHId: rhm.ID,
 	}
 	_, err = resourceModel.Update()
 	if err != nil {
 		response(ctx, false, "更新资源失败:"+err.Error(), nil)
 		return
 	}
-
+	log(ctx, fmt.Sprintf("更新资源版本[ %s ],版本[ %s ],日志[ %s ]", rhm.File, rhm.Version, rhm.Log))
 	response(ctx, true, "更新当前资源版本成功", iris.Map{
-		"resource": model,
+		"resource": rhm,
 	})
 }
 

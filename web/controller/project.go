@@ -33,6 +33,7 @@ func ProjectDelete(ctx iris.Context) {
 		response(ctx, false, "删除项目失败:"+err.Error(), nil)
 		return
 	}
+	log(ctx, fmt.Sprintf("删除项目[ %s ],描述[ %s ]", pm.Name, pm.Desc))
 	response(ctx, true, "删除项目成功", nil)
 }
 
@@ -166,6 +167,7 @@ func ProjectUpgrade(ctx iris.Context) {
 		response(ctx, false, "更新当前项目失败:"+err.Error(), nil)
 		return
 	}
+	log(ctx, fmt.Sprintf("添加项目版本[ %s ]", comment))
 	response(ctx, true, "保存项目版本成功", model)
 }
 
@@ -192,6 +194,7 @@ func ProjectAdd(ctx iris.Context) {
 		response(ctx, false, "保存项目失败:"+err.Error(), nil)
 		return
 	}
+	log(ctx, fmt.Sprintf("添加项目[ %s ],描述[ %s ]", pm.Name, pm.Desc))
 	response(ctx, true, "保存项目成功", model)
 }
 
@@ -290,6 +293,7 @@ func ProjectDownload(ctx iris.Context) {
 	if err != nil {
 		utils.Error("更新项目下载量失败:", err)
 	}
+	log(ctx, fmt.Sprintf("下载项目[ %s ],版本[ %s ]", phm.Path, phm.Log))
 	err = ctx.SendFile(model.Path, path.Base(model.Path))
 	if err != nil {
 		utils.Error("下载项目失败:", err)

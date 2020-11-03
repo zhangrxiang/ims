@@ -124,7 +124,7 @@ func (web *Web) Init() {
 	{
 		projectHistory.Get("/lists", controller.ProjectHistoryLists)
 	}
-
+	web.app.Get(v1Api+"/log/lists", middleware.JWT, middleware.Auth, controller.LogList)
 	go func() {
 		utils.Info("web start...")
 		err := web.app.Run(
