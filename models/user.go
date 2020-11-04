@@ -22,6 +22,12 @@ type UserModel struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+func (u *UserModel) First() (*UserModel, error) {
+	var users UserModel
+	model := db.DB.Model(u).Where(u).First(&users)
+	return &users, model.Error
+}
+
 func (u *UserModel) Find() ([]UserModel, error) {
 	var users []UserModel
 	model := db.DB.Model(u).Where("Id = ?", u.ID).Order("id DESC").Find(&users)
@@ -53,6 +59,11 @@ func (u *UserModel) Insert() (*UserModel, error) {
 		return model.Value.(*UserModel), model.Error
 	}
 	return nil, RecordExists
+}
+
+func (u *UserModel) DeleteBy() error {
+	model := db.DB.Model(u).Delete(u)
+	return model.Error
 }
 
 func (u *UserModel) Delete(ids []int) (*UserModel, error) {

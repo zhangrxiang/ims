@@ -1,12 +1,12 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/kataras/iris"
 	"regexp"
 	"simple-ims/models"
 	"simple-ims/utils"
 	"simple-ims/web/middleware"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -78,6 +78,10 @@ func UserLogin(ctx iris.Context) {
 
 //用户注册
 func UserRegister(ctx iris.Context) {
+	if auth(ctx).Role != models.Admin {
+		response(ctx, false, "没有注册权限,禁止操作", nil)
+		return
+	}
 	username := ctx.FormValue("username")
 	password := ctx.FormValue("password")
 	role := ctx.FormValue("role")
@@ -112,7 +116,7 @@ func UserRegister(ctx iris.Context) {
 		response(ctx, false, "注册用户失败:"+err.Error(), nil)
 		return
 	}
-
+	log(ctx, fmt.Sprintf("注册用户:[ %s ], 密码[ %s ], 角色[ %s ]", username, password, role))
 	response(ctx, true, "注册用户成功", iris.Map{
 		"user": model,
 	})
@@ -120,41 +124,46 @@ func UserRegister(ctx iris.Context) {
 
 //用户删除
 func UserDelete(ctx iris.Context) {
-
+	if auth(ctx).Role != models.Admin {
+		response(ctx, false, "没有删除权限,禁止操作", nil)
+		return
+	}
 	id := ctx.FormValue("id")
 	ids := utils.StrToIntSlice(id, ",")
 	if ids == nil {
 		response(ctx, false, "用户ID非法", nil)
 		return
 	}
-	userModel := &models.UserModel{}
-	_, err := userModel.Delete(ids)
-
-	if err != nil {
-		response(ctx, false, "删除用户失败:"+err.Error(), nil)
-		return
+	for _, id := range ids {
+		um := &models.UserModel{ID: id}
+		um, err := um.First()
+		if err != nil {
+			continue
+		}
+		if err := um.DeleteBy(); err == nil {
+			log(ctx, fmt.Sprintf("删除用户:[ %s ], 密码[ %s ], 角色[ %s ]", um.Username, utils.Decode(um.Password), um.Role))
+		}
 	}
 	response(ctx, true, "删除用户成功", nil)
 }
 
 //用户更新
 func UserUpdate(ctx iris.Context) {
-	idStr := ctx.FormValue("id")
+	id, err := ctx.PostValueInt("id")
+	if err != nil {
+		response(ctx, false, "用户ID非法", nil)
+		return
+	}
+	user := auth(ctx)
+	if user.Role != models.Admin && user.ID != id {
+		response(ctx, false, "没有修改信息权限,禁止操作", nil)
+		return
+	}
 	username := ctx.FormValue("username")
 	password := ctx.FormValue("password")
 	role := ctx.FormValue("role")
 	mail := ctx.FormValue("mail")
 	phone := ctx.FormValue("phone")
-
-	if idStr == "" {
-		response(ctx, false, "用户ID非法", nil)
-		return
-	}
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response(ctx, false, "用户ID非法", nil)
-		return
-	}
 	if username == "" || password == "" || role == "" {
 		response(ctx, false, "请输入用户名,密码,选择角色", nil)
 		return

@@ -26,6 +26,7 @@ func ResourceHistoryDelete(ctx iris.Context) {
 	}
 }
 
+//资源版本回滚
 func ResourceHistoryRollback(ctx iris.Context) {
 	resourceId, err := ctx.URLParamInt("resource_id")
 	if err != nil {
@@ -63,7 +64,7 @@ func ResourceHistoryRollback(ctx iris.Context) {
 		response(ctx, false, "更新版本失败:"+err.Error(), nil)
 		return
 	}
-	log(ctx, fmt.Sprintf("回滚版本[ %s ],资源ID [ %d ] -> [ %d ]", rm.Name, rhm2[0].ID, rhm2[1].ID))
+	log(ctx, fmt.Sprintf("回滚版本[ %s ], 版本[ %s ] -> [ %s ]", rm.Name, rhm2[0].Version, rhm2[1].Version))
 	response(ctx, true, "删除版本成功", nil)
 }
 
@@ -125,6 +126,7 @@ func ResourceHistoryUpdate(ctx iris.Context) {
 
 	user := auth(ctx)
 	rhm.UserId = user.ID
+	rhm.CreatedAt = time.Now()
 	rhm, err = rhm.Update()
 	if err != nil {
 		response(ctx, false, "更新当前资源版本失败:"+err.Error(), nil)
@@ -140,7 +142,7 @@ func ResourceHistoryUpdate(ctx iris.Context) {
 		response(ctx, false, "更新资源失败:"+err.Error(), nil)
 		return
 	}
-	log(ctx, fmt.Sprintf("更新资源版本[ %s ],版本[ %s ],日志[ %s ]", rhm.File, rhm.Version, rhm.Log))
+	log(ctx, fmt.Sprintf("更新资源版本[ %s ], 版本[ %s ], 日志[ %s ]", rhm.File, rhm.Version, rhm.Log))
 	response(ctx, true, "更新当前资源版本成功", iris.Map{
 		"resource": rhm,
 	})
