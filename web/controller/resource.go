@@ -100,10 +100,10 @@ func ResourceUpgrade(ctx iris.Context) {
 	tmp, err := rhm.FirstBy()
 	if tmp != nil {
 		oldVersion = tmp.Version
-	}
-	if err == nil && utils.VersionCompare(version, tmp.Version) < 1 {
-		response(ctx, false, "当前版本必须高于最新版本: "+tmp.Version, nil)
-		return
+		if utils.VersionCompare(version, tmp.Version) < 1 {
+			response(ctx, false, "当前版本必须高于最新版本: "+tmp.Version, nil)
+			return
+		}
 	}
 
 	if file == nil {
