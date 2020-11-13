@@ -33,6 +33,7 @@ func NewOnceWeb() *Web {
 }
 
 func (web *Web) Init() {
+	utils.InitLog()
 	web.app.Configure(iris.WithConfiguration(iris.Configuration{
 		Charset: "UTF-8",
 	}))
