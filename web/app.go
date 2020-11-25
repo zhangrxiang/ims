@@ -120,12 +120,13 @@ func (web *Web) Init() {
 	}
 
 	projectHistory := web.app.Party(v1Api + "/project-history")
-	projectHistory.Use(middleware.JWT)
-	projectHistory.Use(middleware.Auth)
+	projectHistory.Use(middleware.JWT, middleware.Auth)
 	{
 		projectHistory.Get("/lists", controller.ProjectHistoryLists)
 	}
 	web.app.Get(v1Api+"/log/lists", middleware.JWT, middleware.Auth, controller.LogList)
+	web.app.Get(v1Api+"/info", middleware.JWT, middleware.Auth, controller.Info)
+
 	go func() {
 		utils.Info("web start...")
 		err := web.app.Run(
