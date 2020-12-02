@@ -12,7 +12,7 @@ func init() {
 func TestResourceAll(t *testing.T) {
 
 	model := ResourceModel{}
-	all, err := model.All()
+	all, err := model.Find()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -60,8 +60,8 @@ func TestResourceFind(t *testing.T) {
 func find(alice []int) {
 	for _, id := range alice {
 		model := &ResourceModel{}
-		model.ID = id
-		resourceModel, err := model.FindBy()
+		model.Id = id
+		resourceModel, err := model.Find()
 		log.Println(resourceModel)
 		if err != nil {
 			log.Fatalln(err)

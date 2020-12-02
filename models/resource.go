@@ -1,11 +1,13 @@
 package models
 
 import (
+	"errors"
+	"gorm.io/gorm"
 	"time"
 )
 
 type ResourceModel struct {
-	ID        int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
+	Id        int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
 	UserId    int       `json:"user_id"`
 	RHId      int       `json:"rh_id"`
 	Name      string    `json:"name" gorm:"not null"`
@@ -16,52 +18,57 @@ type ResourceModel struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (r *ResourceModel) FindBy() ([]ResourceModel, error) {
-	var resources []ResourceModel
-	model := db.DB.Where(&r).
-		Order("rh_id DESC").
-		Order("id DESC").
-		Find(&resources)
-	return resources, model.Error
-}
+var ErrRMNameExists = errors.New("资源不能重名")
 
-func (r *ResourceModel) First() (*ResourceModel, error) {
-	resource := &ResourceModel{}
-	model := db.DB.First(resource, r.ID)
-	return resource, model.Error
-}
-
-func (r *ResourceModel) FirstByHash(h string) (*ResourceModel, error) {
-	resource := &ResourceModel{}
-	model := db.DB.Where("hash = ?", h).First(resource)
-	if model.RowsAffected == 0 {
-		return nil, NoRecordExists
+func (r *ResourceModel) BeforeCreate(*gorm.DB) (err error) {
+	r2 := &ResourceModel{Name: r.Name}
+	if _, err := r2.First(); err == nil {
+		return ErrRMNameExists
 	}
-	return resource, model.Error
-}
-
-func (r *ResourceModel) FindByType(t int) ([]ResourceModel, error) {
-	var resources []ResourceModel
-	model := db.DB.Where("type = ?", t).Find(&resources)
-	return resources, model.Error
-}
-
-func (r *ResourceModel) All() ([]ResourceModel, error) {
-	var resources []ResourceModel
-	model := db.DB.Order("id DESC").Find(&resources)
-	return resources, model.Error
+	return
 }
 
 func (r *ResourceModel) Insert() error {
 	return db.DB.Create(r).Error
 }
 
-//更新
-func (r *ResourceModel) Update() error {
+func (r *ResourceModel) First() (*ResourceModel, error) {
 	resource := &ResourceModel{}
-	return db.DB.Model(resource).Updates(r).Error
+	model := db.DB.Where(r).First(resource)
+	return resource, model.Error
 }
 
-func (r *ResourceModel) DeleteBy() error {
+func (r *ResourceModel) Find() ([]ResourceModel, error) {
+	var resources []ResourceModel
+	model := db.DB.Where(&r).
+		Order("updated_at DESC").
+		Order("id DESC").
+		Find(&resources)
+	return resources, model.Error
+}
+
+func (r *ResourceModel) BeforeUpdate(*gorm.DB) (err error) {
+	if _, err = (&ResourceModel{Id: r.Id}).First(); err != nil {
+		return err
+	}
+	if r.Name == "" {
+		return
+	}
+	r2 := &ResourceModel{Name: r.Name}
+	if r2, err = r2.First(); err != nil {
+		return nil
+	}
+	if r.Id != r2.Id {
+		return ErrRMNameExists
+	}
+	return
+}
+
+//更新
+func (r *ResourceModel) Update() error {
+	return db.DB.Model(r).Updates(r).Error
+}
+
+func (r *ResourceModel) Delete() error {
 	return db.DB.Model(r).Delete(r).Error
 }

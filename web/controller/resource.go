@@ -26,16 +26,12 @@ func ResourceAdd(ctx iris.Context) {
 		return
 	}
 	user := auth(ctx)
-	if user == nil {
-		return
-	}
 	rm := &models.ResourceModel{
 		UserId: user.ID,
 		Name:   name,
 		Type:   t,
 		Desc:   desc,
 	}
-
 	if err = rm.Insert(); err != nil {
 		response(ctx, false, "保存资源失败:"+err.Error(), nil)
 		return
@@ -64,7 +60,7 @@ func ResourceUpdate(ctx iris.Context) {
 	}
 	user := auth(ctx)
 	rm := models.ResourceModel{
-		ID:     id,
+		Id:     id,
 		UserId: user.ID,
 		Name:   name,
 		Type:   t,
@@ -80,31 +76,28 @@ func ResourceUpdate(ctx iris.Context) {
 
 //添加资源版本
 func ResourceUpgrade(ctx iris.Context) {
-	resourceID, err := ctx.PostValueInt("resource_id")
+	resId, err := ctx.PostValueInt("resource_id")
 	if err != nil {
 		response(ctx, false, "资源ID非法", nil)
 		return
 	}
 	version := ctx.PostValue("version")
-	logStr := ctx.PostValue("log")
-	if version == "" {
-		response(ctx, false, "请填写版本号", nil)
+	l := ctx.PostValue("log")
+	if version == "" || l == "" {
+		response(ctx, false, "请填写版本号或日志", nil)
 		return
 	}
-
-	file, info, err := ctx.FormFile("file")
-
-	rhm := &models.ResourceHistoryModel{ResourceID: resourceID}
+	rhm := &models.ResourceHistoryModel{ResourceId: resId}
 	oldVersion := ""
-	tmp, err := rhm.FirstBy()
-	if tmp != nil {
-		oldVersion = tmp.Version
+	tmp, err := rhm.First()
+	if tmp != nil && err == nil {
+		oldVersion = rhm.Version
 		if utils.VersionCompare(version, tmp.Version) < 1 {
 			response(ctx, false, "当前版本必须高于最新版本: "+tmp.Version, nil)
 			return
 		}
 	}
-
+	file, info, err := ctx.FormFile("file")
 	if file == nil {
 		response(ctx, false, "请上传文件", nil)
 		return
@@ -129,15 +122,15 @@ func ResourceUpgrade(ctx iris.Context) {
 		response(ctx, false, "获取文件MD5失败:"+err.Error(), nil)
 		return
 	}
-	tmp, err = rhm.FirstBy()
-	if tmp != nil {
+	tmp, err = rhm.First()
+	if tmp != nil && err == nil {
 		response(ctx, false, "相同的文件hash已存在:"+tmp.Hash, iris.Map{
 			"resource": tmp,
 		})
 		return
 	}
 	rhm.Version = version
-	rhm.Log = logStr
+	rhm.Log = l
 	rhm.File = info.Filename
 	rhm.Path = uploadDir + utils.FileName(info.Filename, version)
 	err = utils.CopyFile(rhm.Path, file)
@@ -154,8 +147,8 @@ func ResourceUpgrade(ctx iris.Context) {
 	}
 
 	rm := &models.ResourceModel{
-		ID:   resourceID,
-		RHId: rhm.ID,
+		Id:   resId,
+		RHId: rhm.Id,
 	}
 	if err = rm.Update(); err != nil {
 		response(ctx, false, "添加资源失败:"+err.Error(), nil)
@@ -176,14 +169,14 @@ func ResourceDelete(ctx iris.Context) {
 		return
 	}
 
-	rm := &models.ResourceModel{ID: id}
+	rm := &models.ResourceModel{Id: id}
 	rm, err = rm.First()
 	if err != nil {
 		response(ctx, false, "查找要删除的资源失败:"+err.Error(), nil)
 		return
 	}
 
-	rh := &models.ResourceHistoryModel{ResourceID: rm.ID}
+	rh := &models.ResourceHistoryModel{ResourceId: rm.Id}
 	var ids pie.Ints
 	ids, err = rh.FindIDBy()
 	if err != nil {
@@ -209,7 +202,7 @@ func ResourceDelete(ctx iris.Context) {
 		response(ctx, false, "删除所有资源版本失败", nil)
 		return
 	}
-	err = rm.DeleteBy()
+	err = rm.Delete()
 	if err != nil {
 		response(ctx, false, "删除资源失败", nil)
 		return
@@ -252,7 +245,7 @@ func ResourceLists(ctx iris.Context) {
 		}
 
 	}
-	resources, err := rm.FindBy()
+	resources, err := rm.Find()
 	if err != nil {
 		response(ctx, false, "获取资源失败:"+err.Error(), nil)
 		return
@@ -260,9 +253,9 @@ func ResourceLists(ctx iris.Context) {
 	for _, v := range resources {
 		if v.RHId != 0 {
 			rhm := models.ResourceHistoryModel{
-				ID: v.RHId,
+				Id: v.RHId,
 			}
-			resource, err := rhm.FirstBy()
+			resource, err := rhm.First()
 			if err != nil && err != models.NoRecordExists {
 				response(ctx, false, "获取资源版本失败:"+err.Error(), nil)
 				return
@@ -312,7 +305,7 @@ func ResourceGroupLists(ctx iris.Context) {
 		var data []map[string]interface{}
 		for _, t := range allType {
 			resourceModel.Type = t.Id
-			resources, err := resourceModel.FindBy()
+			resources, err := resourceModel.Find()
 			if err != nil {
 				response(ctx, false, "获取资源失败:"+err.Error(), nil)
 				return
@@ -321,15 +314,15 @@ func ResourceGroupLists(ctx iris.Context) {
 				var lists []item
 				for _, v := range resources {
 					if v.RHId != 0 {
-						rhm := models.ResourceHistoryModel{ID: v.RHId}
-						result, err := rhm.FirstBy()
+						rhm := models.ResourceHistoryModel{Id: v.RHId}
+						result, err := rhm.First()
 						if err != nil {
 							response(ctx, false, "获取历史资源失败:"+err.Error(), nil)
 							return
 						}
 						if result != nil {
 							lists = append(lists, item{
-								ID:        v.ID,
+								ID:        v.Id,
 								Name:      v.Name,
 								Desc:      v.Desc,
 								Version:   result.Version,
@@ -387,10 +380,10 @@ func ResourceDownload(ctx iris.Context) {
 	}
 
 	hm := &models.ResourceHistoryModel{
-		ResourceID: id,
+		ResourceId: id,
 		Version:    version,
 	}
-	hm, err = hm.FirstBy()
+	hm, err = hm.First()
 	if err != nil {
 		response(ctx, false, "当前资源不存在", nil)
 		return
@@ -402,7 +395,7 @@ func ResourceDownload(ctx iris.Context) {
 	}
 
 	dm := models.DownloadModel{
-		RHId:   hm.ID,
+		RHId:   hm.Id,
 		UserId: auth(ctx).ID,
 	}
 	if err = dm.Insert(); err != nil {
@@ -410,7 +403,7 @@ func ResourceDownload(ctx iris.Context) {
 		return
 	}
 
-	log(ctx, fmt.Sprintf("下载[ %s ], Id[ %d ], 版本[ %s ], 日志[ %s ]", hm.File, hm.ID, hm.Version, hm.Log))
+	log(ctx, fmt.Sprintf("下载[ %s ], Id[ %d ], 版本[ %s ], 日志[ %s ]", hm.File, hm.Id, hm.Version, hm.Log))
 	err = ctx.SendFile(hm.Path, path.Base(hm.Path))
 	if err != nil {
 		response(ctx, false, "文件不存在"+err.Error(), nil)

@@ -6,8 +6,8 @@ import (
 )
 
 type ResourceHistoryModel struct {
-	ID         int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
-	ResourceID int       `json:"resource_id" gorm:"not null"`
+	Id         int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
+	ResourceId int       `json:"resource_id" gorm:"not null"`
 	UserId     int       `json:"user_id"`
 	Version    string    `json:"version" gorm:"not null"`
 	Log        string    `json:"log"`
@@ -27,19 +27,16 @@ func (rh *ResourceHistoryModel) Insert() error {
 }
 
 //单数据查询
-func (rh *ResourceHistoryModel) FirstBy() (*ResourceHistoryModel, error) {
+func (rh *ResourceHistoryModel) First() (*ResourceHistoryModel, error) {
 	var resource ResourceHistoryModel
-	model := db.DB.Where(rh).Order("id DESC").First(&resource)
-	if model.Error == gorm.ErrRecordNotFound {
-		return nil, nil
-	}
+	model := db.DB.Where(rh).First(&resource)
 	return &resource, model.Error
 }
 
 //多数据查询
 func (rh *ResourceHistoryModel) FindBy() ([]ResourceHistoryModel, error) {
 	var resources []ResourceHistoryModel
-	model := db.DB.Order("id DESC").Find(&resources, "resource_id = ?", rh.ResourceID)
+	model := db.DB.Order("id DESC").Find(&resources, "resource_id = ?", rh.ResourceId)
 	return resources, model.Error
 }
 
@@ -47,12 +44,6 @@ func (rh *ResourceHistoryModel) FindByIDs(ids []int) ([]ResourceHistoryModel, er
 	var resources []ResourceHistoryModel
 	model := db.DB.Order("id DESC").Where(ids).Find(&resources)
 	return resources, model.Error
-}
-
-func (rh *ResourceHistoryModel) FindValueBy(key string) ([]interface{}, error) {
-	var values []interface{}
-	model := db.DB.Model(rh).Pluck(key, &values)
-	return values, model.Error
 }
 
 func (rh *ResourceHistoryModel) FindIDBy() ([]int, error) {
@@ -63,8 +54,8 @@ func (rh *ResourceHistoryModel) FindIDBy() ([]int, error) {
 
 //更新
 func (rh *ResourceHistoryModel) Update() error {
-	resource := &ResourceHistoryModel{}
-	return db.DB.Model(resource).Updates(rh).Error
+	resource := &ResourceHistoryModel{Id: rh.Id}
+	return db.DB.Model(resource).Where(resource).Updates(rh).Error
 }
 
 func (rh *ResourceHistoryModel) DeleteBy(ids []int) error {

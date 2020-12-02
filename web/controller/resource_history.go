@@ -16,12 +16,12 @@ func ResourceHistoryDelete(ctx iris.Context) {
 		return
 	}
 	rhm := &models.ResourceHistoryModel{}
-	rhm, err = rhm.FirstBy()
+	rhm, err = rhm.First()
 	if err != nil {
 		return
 	}
 
-	if rhm.ID == id {
+	if rhm.Id == id {
 		return
 	}
 }
@@ -37,13 +37,13 @@ func ResourceHistoryRollback(ctx iris.Context) {
 	if user == nil {
 		return
 	}
-	rm := &models.ResourceModel{ID: resourceId}
+	rm := &models.ResourceModel{Id: resourceId}
 	rm, err = rm.First()
 	if err != nil {
 		response(ctx, false, "资源不存在:"+err.Error(), nil)
 		return
 	}
-	rhm := &models.ResourceHistoryModel{ResourceID: rm.ID}
+	rhm := &models.ResourceHistoryModel{ResourceId: rm.Id}
 	rhm2, err2 := rhm.FindBy()
 	if err2 != nil {
 		response(ctx, false, "资源版本不存在:"+err2.Error(), nil)
@@ -58,7 +58,7 @@ func ResourceHistoryRollback(ctx iris.Context) {
 		response(ctx, false, "删除当前版本失败:"+err.Error(), nil)
 		return
 	}
-	rm.RHId = rhm2[1].ID
+	rm.RHId = rhm2[1].Id
 	if err = rm.Update(); err != nil {
 		response(ctx, false, "更新版本失败:"+err.Error(), nil)
 		return
@@ -74,7 +74,7 @@ func ResourceHistoryUpdate(ctx iris.Context) {
 		return
 	}
 
-	rm := &models.ResourceModel{ID: resourceID}
+	rm := &models.ResourceModel{Id: resourceID}
 	rm, err = rm.First()
 	if err != nil {
 		response(ctx, false, "资源不存在:"+err.Error(), nil)
@@ -84,8 +84,8 @@ func ResourceHistoryUpdate(ctx iris.Context) {
 	if id == 0 {
 		id = rm.RHId
 	}
-	rhm := &models.ResourceHistoryModel{ID: id}
-	rhm, err = rhm.FirstBy()
+	rhm := &models.ResourceHistoryModel{Id: id}
+	rhm, err = rhm.First()
 	if err != nil {
 		response(ctx, false, "当前版本不存在:"+err.Error(), nil)
 		return
@@ -132,8 +132,8 @@ func ResourceHistoryUpdate(ctx iris.Context) {
 	}
 
 	rm = &models.ResourceModel{
-		ID:   resourceID,
-		RHId: rhm.ID,
+		Id:   resourceID,
+		RHId: rhm.Id,
 	}
 	if err = rm.Update(); err != nil {
 		response(ctx, false, "更新资源失败:"+err.Error(), nil)
@@ -157,7 +157,7 @@ func ResourceHistoryLists(ctx iris.Context) {
 		response(ctx, false, "资源ID非法", nil)
 		return
 	}
-	rhm := models.ResourceHistoryModel{ResourceID: resourceId}
+	rhm := models.ResourceHistoryModel{ResourceId: resourceId}
 	rhms, err := rhm.FindBy()
 	if err != nil {
 		response(ctx, false, "获取历史版本失败", nil)

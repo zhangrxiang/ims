@@ -122,9 +122,9 @@ func ProjectUpgrade(ctx iris.Context) {
 	defer func() { _ = w.Close() }()
 	for _, id := range utils.StrToIntSlice(RHIds, ",") {
 		rhm := models.ResourceHistoryModel{
-			ID: id,
+			Id: id,
 		}
-		resourceHistoryModel, err := rhm.FirstBy()
+		resourceHistoryModel, err := rhm.First()
 		if err != nil {
 			response(ctx, false, "获取资源版本失败"+err.Error(), nil)
 			return
@@ -222,7 +222,7 @@ func ProjectDetail(ctx iris.Context) {
 		return
 	}
 	for k, v := range rhs {
-		rm := &models.ResourceModel{ID: v.ResourceID}
+		rm := &models.ResourceModel{Id: v.ResourceId}
 		rm, _ = rm.First()
 		if rm != nil {
 			rhs[k].File = rm.Name

@@ -101,6 +101,9 @@ func FileName(p string, version string) string {
 func VersionCompare(v1, v2 string) int8 {
 	sv1 := strings.Split(v1, ".")
 	sv2 := strings.Split(v2, ".")
+	if len(sv1) != 3 || len(sv2) != 3 {
+		return 0
+	}
 	for k, v := range sv1 {
 		v1, _ := strconv.Atoi(v)
 		v2, _ := strconv.Atoi(sv2[k])

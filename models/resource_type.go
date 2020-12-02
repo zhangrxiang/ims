@@ -47,14 +47,17 @@ func (r *ResourceTypeModel) DeleteByIds(ids []int) error {
 }
 
 func (r *ResourceTypeModel) BeforeUpdate(*gorm.DB) (err error) {
-	if _, err = r.First(); err != nil {
+	if _, err = (&ResourceTypeModel{Id: r.Id}).First(); err != nil {
 		return err
+	}
+	if r.Name == "" {
+		return
 	}
 	r2 := &ResourceTypeModel{Name: r.Name}
 	if r2, err = r2.First(); err != nil {
 		return nil
 	}
-	if r2.Id != r2.Id {
+	if r.Id != r2.Id {
 		return ErrRTMNameExists
 	}
 	return
