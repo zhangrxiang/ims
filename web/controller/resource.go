@@ -37,7 +37,7 @@ func ResourceAdd(ctx iris.Context) {
 		return
 	}
 	log(ctx, fmt.Sprintf("添加资源:[ %s ], 描述:[ %s ]", name, desc))
-	response(ctx, true, "添加资源成功", nil)
+	response(ctx, true, "添加资源成功", rm)
 }
 
 //更新资源
@@ -197,13 +197,14 @@ func ResourceDelete(ctx iris.Context) {
 		response(ctx, false, "当前资源已经被项目占用,禁止删除", nil)
 		return
 	}
-	err = rh.DeleteBy(ids)
-	if err != nil {
-		response(ctx, false, "删除所有资源版本失败", nil)
-		return
+	if len(ids) != 0 {
+		if err = rh.DeleteBy(ids); err != nil {
+			response(ctx, false, "删除所有资源版本失败", nil)
+			return
+		}
 	}
-	err = rm.Delete()
-	if err != nil {
+
+	if err = rm.Delete(); err != nil {
 		response(ctx, false, "删除资源失败", nil)
 		return
 	}
@@ -243,7 +244,6 @@ func ResourceLists(ctx iris.Context) {
 		rm = models.ResourceModel{
 			Type: resourceType,
 		}
-
 	}
 	resources, err := rm.Find()
 	if err != nil {
@@ -291,7 +291,7 @@ func ResourceGroupLists(ctx iris.Context) {
 		return
 	}
 	if len(allType) > 0 {
-		resourceModel := &models.ResourceModel{}
+		rm := &models.ResourceModel{}
 		type item struct {
 			ID        int       `json:"id"`
 			Name      string    `json:"name"`
@@ -304,8 +304,8 @@ func ResourceGroupLists(ctx iris.Context) {
 		}
 		var data []map[string]interface{}
 		for _, t := range allType {
-			resourceModel.Type = t.Id
-			resources, err := resourceModel.Find()
+			rm.Type = t.Id
+			resources, err := rm.Find()
 			if err != nil {
 				response(ctx, false, "获取资源失败:"+err.Error(), nil)
 				return

@@ -18,12 +18,12 @@ func (l *LogModel) Insert() {
 
 func (l *LogModel) FindNot(userId int) ([]LogModel, error) {
 	var lm []LogModel
-	model := db.DB.Order("id DESC").Where("user_id != ?", userId).Find(&lm)
+	model := db.DB.Order("id DESC").Where("user_id != ?", userId).Limit(200).Find(&lm)
 	return lm, model.Error
 }
 
 func (l *LogModel) Find() ([]LogModel, error) {
 	var lm []LogModel
-	model := db.DB.Order("id DESC").Where(&l).Find(&lm)
+	model := db.DB.Order("id DESC").Where(&l).Limit(200).Find(&lm)
 	return lm, model.Error
 }

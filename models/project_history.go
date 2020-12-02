@@ -1,12 +1,11 @@
 package models
 
 import (
-	"gorm.io/gorm"
 	"time"
 )
 
 type ProjectHistoryModel struct {
-	ID        int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
+	Id        int       `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
 	ProjectId int       `json:"project_id" gorm:"not null"`
 	Version   string    `json:"version" gorm:"not null"`
 	RHIds     string    `json:"rh_ids"`
@@ -21,21 +20,19 @@ func (ph *ProjectHistoryModel) DeleteByProjectId(projectId int) error {
 	return db.DB.Where("project_id = ?", projectId).Delete(ph).Error
 }
 
-func (ph *ProjectHistoryModel) FindBy() ([]ProjectHistoryModel, error) {
+func (ph *ProjectHistoryModel) Find() ([]ProjectHistoryModel, error) {
 	var projects []ProjectHistoryModel
-	model := db.DB.Order("id DESC").Where(&ph).Find(&projects)
-	if model.Error == gorm.ErrRecordNotFound {
-		return projects, nil
+	m := db.DB.Model(ph)
+	if ph.ProjectId != 0 {
+		m.Where("project_id = ?", ph.ProjectId)
 	}
+	model := m.Order("id DESC").Find(&projects)
 	return projects, model.Error
 }
 
 func (ph *ProjectHistoryModel) First() (*ProjectHistoryModel, error) {
 	var project ProjectHistoryModel
-	model := db.DB.Order("id DESC").Where(&ph).First(&project)
-	if model.Error == gorm.ErrRecordNotFound {
-		return nil, nil
-	}
+	model := db.DB.Model(ph).Order("id DESC").Where(ph).First(&project)
 	return &project, model.Error
 }
 

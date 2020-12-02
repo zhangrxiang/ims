@@ -26,7 +26,7 @@ func ProjectDelete(ctx iris.Context) {
 		response(ctx, false, "删除当前项目历史所有版本失败:"+err.Error(), nil)
 		return
 	}
-	pm := &models.ProjectModel{ID: id}
+	pm := &models.ProjectModel{Id: id}
 	if err := pm.Delete(); err != nil {
 		response(ctx, false, "删除项目失败:"+err.Error(), nil)
 		return
@@ -45,23 +45,23 @@ func ProjectLists(ctx iris.Context) {
 	}
 	var list []item
 	pm := models.ProjectModel{}
-	projects, err := pm.FindBy()
+	projects, err := pm.Find()
 	if err != nil {
 		response(ctx, false, "获取项目列表失败:"+err.Error(), nil)
 		return
 	}
 	for _, v := range projects {
-		phm := models.ProjectHistoryModel{ProjectId: v.ID}
-		project, err := phm.First()
-		if err != nil && err != models.NoRecordExists {
-			response(ctx, false, "获取项目版本失败:"+err.Error(), nil)
-			return
-		}
-		if project == nil {
-			v.UpdatedAt = v.CreatedAt
+		if v.PHId == 0 {
 			list = append(list, item{v, "", 0, ""})
 		} else {
-			list = append(list, item{v, project.Version, project.Download, project.Log})
+			phm := models.ProjectHistoryModel{ProjectId: v.Id}
+			project, err := phm.First()
+			if err != nil {
+				v.UpdatedAt = v.CreatedAt
+				list = append(list, item{v, "", 0, ""})
+			} else {
+				list = append(list, item{v, project.Version, project.Download, project.Log})
+			}
 		}
 	}
 	response(ctx, true, "获取项目列表成功", list)
@@ -81,15 +81,15 @@ func ProjectUpgrade(ctx iris.Context) {
 		response(ctx, false, "请输入版本号,选择对应资源", nil)
 		return
 	}
-	pm := &models.ProjectModel{ID: projectId}
-	pm, err = pm.FirstBy()
+	pm := &models.ProjectModel{Id: projectId}
+	pm, err = pm.First()
 	if err != nil {
 		response(ctx, false, "获取当前项目详情失败:"+err.Error(), nil)
 		return
 	}
 	phm := &models.ProjectHistoryModel{ProjectId: projectId}
 	phm, err = phm.First()
-	if phm != nil && utils.VersionCompare(version, phm.Version) < 1 {
+	if err == nil && utils.VersionCompare(version, phm.Version) < 1 {
 		response(ctx, false, "当前版本必须高于最新版本:"+phm.Version, nil)
 		return
 	}
@@ -99,42 +99,27 @@ func ProjectUpgrade(ctx iris.Context) {
 		return
 	}
 	zipDir := uploadDir + utils.FileName(pm.Name, version) + utils.Zip
-	phm = &models.ProjectHistoryModel{
-		ProjectId: projectId,
-		Version:   version,
-		Log:       logStr,
-		RHIds:     RHIds,
-		Path:      zipDir,
-		Hash:      utils.Md5Str(string(rune(projectId)) + version + logStr + RHIds),
-	}
-	if err := phm.Insert(); err != nil {
-		response(ctx, false, "保存项目版本失败:"+err.Error(), nil)
-		return
-	}
-	phm, err = phm.First()
 	fZip, err := os.Create(zipDir)
 	if err != nil {
-		response(ctx, false, "创建zip文件失败"+err.Error(), nil)
+		response(ctx, false, "创建zip文件失败: "+err.Error(), nil)
 		return
 	}
 	w := zip.NewWriter(fZip)
 	resourceLog := ""
 	defer func() { _ = w.Close() }()
 	for _, id := range utils.StrToIntSlice(RHIds, ",") {
-		rhm := models.ResourceHistoryModel{
-			Id: id,
-		}
-		resourceHistoryModel, err := rhm.First()
+		rhm := &models.ResourceHistoryModel{Id: id}
+		rhm, err := rhm.First()
 		if err != nil {
-			response(ctx, false, "获取资源版本失败"+err.Error(), nil)
+			response(ctx, false, "获取资源版本失败: "+err.Error(), nil)
 			return
 		}
-		fw, err := w.Create(path.Base(resourceHistoryModel.Path))
+		fw, err := w.Create(path.Base(rhm.Path))
 		if err != nil {
-			response(ctx, false, "创建打包文件失败"+err.Error(), nil)
+			response(ctx, false, "创建打包文件失败: "+err.Error(), nil)
 			return
 		}
-		fileContent, err := ioutil.ReadFile(resourceHistoryModel.Path)
+		fileContent, err := ioutil.ReadFile(rhm.Path)
 		if err != nil {
 			response(ctx, false, "读取要打包的文件内容失败"+err.Error(), nil)
 			return
@@ -144,7 +129,7 @@ func ProjectUpgrade(ctx iris.Context) {
 			response(ctx, false, "将文件内容写入压缩包失败"+err.Error(), nil)
 			return
 		}
-		resourceLog += fmt.Sprintf("\t%s:\t%s\n", resourceHistoryModel.File, resourceHistoryModel.Log)
+		resourceLog += fmt.Sprintf("\t%s:\t%s\n", rhm.File, rhm.Log)
 	}
 	comment := ""
 	comment += "项目描述: " + pm.Desc + "\n\n"
@@ -155,7 +140,19 @@ func ProjectUpgrade(ctx iris.Context) {
 	if err != nil {
 		utils.Error("向压缩包写入注释失败")
 	}
-	pm.PHId = phm.ID
+	phm = &models.ProjectHistoryModel{
+		ProjectId: projectId,
+		Version:   version,
+		Log:       logStr,
+		RHIds:     RHIds,
+		Path:      zipDir,
+		Hash:      utils.Md5Str(string(rune(projectId)) + version + logStr + RHIds),
+	}
+	if err := phm.Insert(); err != nil {
+		response(ctx, false, "保存项目版本失败: "+err.Error(), nil)
+		return
+	}
+	pm.PHId = phm.Id
 	if err := pm.Update(); err != nil {
 		response(ctx, false, "更新当前项目失败:"+err.Error(), nil)
 		return
@@ -197,8 +194,8 @@ func ProjectDetail(ctx iris.Context) {
 		response(ctx, false, "项目ID不合法", nil)
 		return
 	}
-	pm := &models.ProjectModel{ID: id}
-	model, err := pm.FirstBy()
+	pm := &models.ProjectModel{Id: id}
+	model, err := pm.First()
 	if err != nil || model == nil {
 		response(ctx, false, "查找项目失败", nil)
 		return
@@ -207,7 +204,7 @@ func ProjectDetail(ctx iris.Context) {
 		response(ctx, true, "", nil)
 		return
 	}
-	ph := &models.ProjectHistoryModel{ID: model.PHId}
+	ph := &models.ProjectHistoryModel{Id: model.PHId}
 	ph, err = ph.First()
 	if err != nil || ph == nil {
 		response(ctx, false, "查找项目版本失败", nil)
@@ -250,7 +247,7 @@ func ProjectUpdate(ctx iris.Context) {
 		return
 	}
 	pm := &models.ProjectModel{
-		ID:     id,
+		Id:     id,
 		Name:   name,
 		Desc:   desc,
 		UserId: user.ID,

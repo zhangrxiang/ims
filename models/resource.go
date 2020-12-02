@@ -40,11 +40,14 @@ func (r *ResourceModel) First() (*ResourceModel, error) {
 
 func (r *ResourceModel) Find() ([]ResourceModel, error) {
 	var resources []ResourceModel
-	model := db.DB.Where(&r).
-		Order("updated_at DESC").
+	m := db.DB.Model(r)
+	if r.Type != 0 {
+		m.Where("type = ?", r.Type)
+	}
+	m.Order("updated_at DESC").
 		Order("id DESC").
 		Find(&resources)
-	return resources, model.Error
+	return resources, m.Error
 }
 
 func (r *ResourceModel) BeforeUpdate(*gorm.DB) (err error) {

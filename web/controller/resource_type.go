@@ -111,8 +111,8 @@ func ResourceTypeLists(ctx iris.Context) {
 		return
 	}
 	response(ctx, true, "", iris.Map{
-		"resource_types": list,
-		"timestamp":      time.Now().Unix(),
+		"item":      list,
+		"timestamp": time.Now().Unix(),
 	})
 	return
 

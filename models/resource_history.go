@@ -2,6 +2,7 @@ package models
 
 import (
 	"gorm.io/gorm"
+	"log"
 	"time"
 )
 
@@ -59,8 +60,8 @@ func (rh *ResourceHistoryModel) Update() error {
 }
 
 func (rh *ResourceHistoryModel) DeleteBy(ids []int) error {
-	model := db.DB.Model(rh).Where(ids).Delete(rh)
-	return model.Error
+	log.Println(ids)
+	return db.DB.Model(rh).Delete(rh, ids).Error
 }
 
 func (rh *ResourceHistoryModel) Delete() error {
