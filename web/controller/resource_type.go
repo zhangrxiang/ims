@@ -19,20 +19,19 @@ func ResourceTypeAdd(ctx iris.Context) {
 		response(ctx, false, "资源分类名不能为空", nil)
 		return
 	}
-	resourceTypeModel := &models.ResourceTypeModel{
+	rtm := &models.ResourceTypeModel{
 		Name: name,
 		Desc: desc,
 	}
-	model, err := resourceTypeModel.Insert()
 
-	if err != nil {
+	if err := rtm.Insert(); err != nil {
 		response(ctx, false, "保存资源分类失败:"+err.Error(), nil)
 		return
 	}
 
 	log(ctx, fmt.Sprintf("添加资源分类:[ %s ],描述:[ %s ]", name, desc))
 	response(ctx, true, "", iris.Map{
-		"resource_type": model,
+		"resource_type": rtm,
 		"timestamp":     time.Now().Unix(),
 	})
 	return
@@ -71,9 +70,7 @@ func ResourceTypeDelete(ctx iris.Context) {
 	}
 
 	rt := &models.ResourceTypeModel{}
-	_, err := rt.DeleteByIds(id)
-
-	if err != nil {
+	if err := rt.DeleteByIds(id); err != nil {
 		response(ctx, false, "删除资源分类失败:"+err.Error(), nil)
 		return
 	}
@@ -100,9 +97,7 @@ func ResourceTypeUpdate(ctx iris.Context) {
 	oldDesc := rt.Desc
 	rt.Name = name
 	rt.Desc = desc
-	_, err = rt.Update()
-
-	if err != nil {
+	if err = rt.Update(); err != nil {
 		response(ctx, false, "更新资源分类失败:"+err.Error(), nil)
 		return
 	}

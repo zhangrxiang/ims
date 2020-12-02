@@ -17,7 +17,6 @@ func (dm *DownloadModel) FirstBy() (*DownloadModel, error) {
 	return downloadModel, model.Error
 }
 
-func (dm *DownloadModel) Insert() (*DownloadModel, error) {
-	model := db.DB.Create(dm)
-	return model.Value.(*DownloadModel), model.Error
+func (dm *DownloadModel) Insert() error {
+	return db.DB.Create(dm).Error
 }

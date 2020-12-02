@@ -35,13 +35,13 @@ func ResourceAdd(ctx iris.Context) {
 		Type:   t,
 		Desc:   desc,
 	}
-	rm, err = rm.Insert()
-	if err != nil {
+
+	if err = rm.Insert(); err != nil {
 		response(ctx, false, "保存资源失败:"+err.Error(), nil)
 		return
 	}
 	log(ctx, fmt.Sprintf("添加资源:[ %s ], 描述:[ %s ]", name, desc))
-	response(ctx, true, "添加资源成功", rm)
+	response(ctx, true, "添加资源成功", nil)
 }
 
 //更新资源
@@ -70,8 +70,7 @@ func ResourceUpdate(ctx iris.Context) {
 		Type:   t,
 		Desc:   desc,
 	}
-	_, err = rm.Update()
-	if err != nil {
+	if err = rm.Update(); err != nil {
 		response(ctx, false, "更新资源失败:"+err.Error(), nil)
 		return
 	}
@@ -149,8 +148,7 @@ func ResourceUpgrade(ctx iris.Context) {
 
 	user := auth(ctx)
 	rhm.UserId = user.ID
-	rhm, err = rhm.Insert()
-	if err != nil {
+	if err = rhm.Insert(); err != nil {
 		response(ctx, false, "添加资源版本失败:"+err.Error(), nil)
 		return
 	}
@@ -159,8 +157,7 @@ func ResourceUpgrade(ctx iris.Context) {
 		ID:   resourceID,
 		RHId: rhm.ID,
 	}
-	_, err = rm.Update()
-	if err != nil {
+	if err = rm.Update(); err != nil {
 		response(ctx, false, "添加资源失败:"+err.Error(), nil)
 		return
 	}
@@ -399,8 +396,7 @@ func ResourceDownload(ctx iris.Context) {
 		return
 	}
 
-	_, err = hm.Increment()
-	if err != nil {
+	if err = hm.Increment(); err != nil {
 		response(ctx, false, "更新资源下载量失败", nil)
 		return
 	}
@@ -409,8 +405,7 @@ func ResourceDownload(ctx iris.Context) {
 		RHId:   hm.ID,
 		UserId: auth(ctx).ID,
 	}
-	_, err = dm.Insert()
-	if err != nil {
+	if err = dm.Insert(); err != nil {
 		response(ctx, false, "添加下载资源记录失败", nil)
 		return
 	}

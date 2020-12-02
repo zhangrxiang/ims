@@ -14,17 +14,16 @@ import (
 //用户列表
 func UserLists(ctx iris.Context) {
 	var (
-		user  = auth(ctx)
+		user  models.UserModel
 		users []models.UserModel
 		err   error
 	)
-	if user.Role == models.Admin {
-		users, err = user.All()
-
-	} else if user.Role == models.Uploader {
-		users, err = user.Find()
-
+	current := auth(ctx)
+	if current.Role == models.Admin {
+	} else {
+		user.ID = current.ID
 	}
+	users, err = user.Find()
 	if err != nil {
 		response(ctx, false, "无用户:"+err.Error(), nil)
 		return
@@ -42,34 +41,30 @@ func UserLists(ctx iris.Context) {
 func UserLogin(ctx iris.Context) {
 	username := ctx.URLParamDefault("username", "")
 	password := ctx.URLParamDefault("password", "")
-
 	if username == "" || password == "" {
 		response(ctx, false, "用户名或密码不能为空", nil)
 		return
 	}
-
-	user := models.UserModel{
+	u := &models.UserModel{
 		Username: username,
 		Password: utils.Encode(password),
 	}
-
-	model, err := user.Login()
-
+	u, err := u.First()
 	if err != nil {
 		response(ctx, false, "用户名或密码错误", nil)
 		return
 	}
 
-	model.Password = strings.Repeat("*", len(model.Password))
-	token, err := middleware.GenerateToken(model)
+	u.Password = strings.Repeat("*", len(u.Password))
+	token, err := middleware.GenerateToken(u)
 
 	if err != nil {
 		response(ctx, false, "生成token失败"+err.Error(), nil)
 		return
 	}
-	login(model)
+	login(u)
 	response(ctx, true, "", iris.Map{
-		"user":       model,
+		"user":       u,
 		"token":      token,
 		"token_type": "Bearer",
 		"timestamp":  time.Now().Unix(),
@@ -103,7 +98,7 @@ func UserRegister(ctx iris.Context) {
 		return
 	}
 
-	userModel := &models.UserModel{
+	um := &models.UserModel{
 		Username: username,
 		Password: utils.Encode(password),
 		Mail:     mail,
@@ -111,14 +106,13 @@ func UserRegister(ctx iris.Context) {
 		Role:     role,
 	}
 
-	model, err := userModel.Insert()
-	if err != nil {
+	if err := um.Insert(); err != nil {
 		response(ctx, false, "注册用户失败:"+err.Error(), nil)
 		return
 	}
 	log(ctx, fmt.Sprintf("注册用户:[ %s ], 密码[ %s ], 角色[ %s ]", username, password, role))
 	response(ctx, true, "注册用户成功", iris.Map{
-		"user": model,
+		"user": um,
 	})
 }
 
@@ -128,8 +122,7 @@ func UserDelete(ctx iris.Context) {
 		response(ctx, false, "没有删除权限,禁止操作", nil)
 		return
 	}
-	id := ctx.FormValue("id")
-	ids := utils.StrToIntSlice(id, ",")
+	ids := utils.StrToIntSlice(ctx.FormValue("id"), ",")
 	if ids == nil {
 		response(ctx, false, "用户ID非法", nil)
 		return
@@ -140,7 +133,7 @@ func UserDelete(ctx iris.Context) {
 		if err != nil {
 			continue
 		}
-		if err := um.DeleteBy(); err == nil {
+		if err := um.Delete(); err == nil {
 			log(ctx, fmt.Sprintf("删除用户:[ %s ], 密码[ %s ], 角色[ %s ]", um.Username, utils.Decode(um.Password), um.Role))
 		}
 	}
@@ -178,7 +171,7 @@ func UserUpdate(ctx iris.Context) {
 		response(ctx, false, "请输入合法的手机号", nil)
 		return
 	}
-	userModel := &models.UserModel{
+	um := &models.UserModel{
 		ID:       id,
 		Username: username,
 		Password: utils.Encode(password),
@@ -187,15 +180,12 @@ func UserUpdate(ctx iris.Context) {
 		Role:     role,
 	}
 
-	model, err := userModel.Update()
-	if err != nil {
+	if err := um.Update(); err != nil {
 		response(ctx, false, "修改用户失败:"+err.Error(), nil)
 		return
 	}
 	log(ctx, "更新用户信息")
-	response(ctx, true, "修改用户成功", iris.Map{
-		"user": model,
-	})
+	response(ctx, true, "修改用户成功", nil)
 }
 
 //验证邮箱

@@ -9,7 +9,7 @@ import (
 
 type Message struct {
 	Success bool        `json:"success"`
-	ErrMsg  string      `json:"err_msg"`
+	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
 }
 
@@ -31,17 +31,17 @@ func log(ctx iris.Context, content string) {
 }
 
 //响应客户端数据
-func response(ctx iris.Context, success bool, errMsg string, data interface{}) {
+func response(ctx iris.Context, success bool, message string, data interface{}) {
 	if data == nil {
 		data = []int{}
 	}
 	_, err := ctx.JSON(Message{
 		Success: success,
-		ErrMsg:  errMsg,
+		Message: message,
 		Data:    data,
 	})
 	if !success {
-		utils.Error(fmt.Sprintf("[message:%s],[data:%v]", errMsg, data))
+		utils.Error(fmt.Sprintf("[message:%s],[data:%v]", message, data))
 	}
 	if err != nil {
 		utils.Error("输出json数据失败： ", err)

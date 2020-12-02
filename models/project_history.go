@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -17,21 +17,8 @@ type ProjectHistoryModel struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func (ph *ProjectHistoryModel) DeleteByProjectId(projectId int) (*ProjectHistoryModel, error) {
-	model := db.DB.Where("project_id = ?", projectId).Delete(ph)
-	if model.RowsAffected == 0 {
-		return nil, nil
-	}
-	return model.Value.(*ProjectHistoryModel), model.Error
-}
-
-//根据ID删除
-func (ph *ProjectHistoryModel) DeleteByIds(ids []int) (*ProjectHistoryModel, error) {
-	model := db.DB.Where(ids).Delete(ph)
-	if model.RowsAffected == 0 {
-		return nil, NoRecordExists
-	}
-	return model.Value.(*ProjectHistoryModel), model.Error
+func (ph *ProjectHistoryModel) DeleteByProjectId(projectId int) error {
+	return db.DB.Where("project_id = ?", projectId).Delete(ph).Error
 }
 
 func (ph *ProjectHistoryModel) FindBy() ([]ProjectHistoryModel, error) {
@@ -52,19 +39,13 @@ func (ph *ProjectHistoryModel) First() (*ProjectHistoryModel, error) {
 	return &project, model.Error
 }
 
-func (ph *ProjectHistoryModel) Insert() (*ProjectHistoryModel, error) {
-	model := db.DB.Create(ph)
-	return model.Value.(*ProjectHistoryModel), model.Error
+func (ph *ProjectHistoryModel) Insert() error {
+	return db.DB.Create(ph).Error
 }
 
 //更新
-func (ph *ProjectHistoryModel) Update() (*ProjectHistoryModel, error) {
-	phm := &ProjectHistoryModel{}
-	model := db.DB.Model(phm).Updates(ph)
-	if model.RowsAffected == 0 {
-		return nil, NoRecordExists
-	}
-	return model.Value.(*ProjectHistoryModel), model.Error
+func (ph *ProjectHistoryModel) Update() error {
+	return db.DB.Model(ph).Updates(ph).Error
 }
 
 func (ph *ProjectHistoryModel) FindValueBy(key string) ([]interface{}, error) {

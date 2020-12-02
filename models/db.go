@@ -2,8 +2,8 @@ package models
 
 import (
 	"errors"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 	"simple-ims/utils"
 	"sync"
 )
@@ -31,11 +31,11 @@ func GetDBInstance() *DB {
 
 func (db *DB) Init() {
 	var err error
-	db.DB, err = gorm.Open("sqlite3", "./database.db")
+	db.DB, err = gorm.Open(sqlite.Open("./database.db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
-
+	migrator := db.DB.Migrator()
 	for _, v := range []interface{}{
 		(*UserModel)(nil),
 		(*LogModel)(nil),
@@ -46,8 +46,8 @@ func (db *DB) Init() {
 		(*ProjectModel)(nil),
 		(*ProjectHistoryModel)(nil),
 	} {
-		if !db.DB.HasTable(v) {
-			db.DB.CreateTable(v)
+		if !migrator.HasTable(v) {
+			_ = migrator.CreateTable(v)
 			switch v.(type) {
 			case *UserModel:
 				for _, v := range []*UserModel{{
@@ -81,15 +81,11 @@ func (db *DB) Init() {
 				}
 			}
 		}
-		db.DB.AutoMigrate(v)
+		_ = db.DB.AutoMigrate(v)
 	}
 }
 
 func (db *DB) Close() {
-	err := db.DB.Close()
-	if err != nil {
-		panic("failed to close database")
-	}
 }
 
 func (db *DB) GetDB() *gorm.DB {

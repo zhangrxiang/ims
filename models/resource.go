@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
 	"time"
 )
 
@@ -32,15 +31,6 @@ func (r *ResourceModel) First() (*ResourceModel, error) {
 	return resource, model.Error
 }
 
-func (r *ResourceModel) FindByIds(ids []int) (*[]ResourceModel, error) {
-	var resources []ResourceModel
-	model := db.DB.Where(ids).Order("id DESC").Find(&resources)
-	if model.RowsAffected == 0 {
-		return nil, NoRecordExists
-	}
-	return model.Value.(*[]ResourceModel), model.Error
-}
-
 func (r *ResourceModel) FirstByHash(h string) (*ResourceModel, error) {
 	resource := &ResourceModel{}
 	model := db.DB.Where("hash = ?", h).First(resource)
@@ -56,42 +46,22 @@ func (r *ResourceModel) FindByType(t int) ([]ResourceModel, error) {
 	return resources, model.Error
 }
 
-func (r *ResourceModel) All() (*[]ResourceModel, error) {
+func (r *ResourceModel) All() ([]ResourceModel, error) {
 	var resources []ResourceModel
 	model := db.DB.Order("id DESC").Find(&resources)
-	return model.Value.(*[]ResourceModel), model.Error
+	return resources, model.Error
 }
 
-func (r *ResourceModel) Insert() (*ResourceModel, error) {
-	model := db.DB.Create(r)
-	return model.Value.(*ResourceModel), model.Error
-}
-
-//根据ID删除
-func (r *ResourceModel) DeleteByIds(ids []int) (*ResourceModel, error) {
-	model := db.DB.Where(ids).Delete(r)
-	if model.RowsAffected == 0 {
-		return nil, NoRecordExists
-	}
-	return model.Value.(*ResourceModel), model.Error
+func (r *ResourceModel) Insert() error {
+	return db.DB.Create(r).Error
 }
 
 //更新
-func (r *ResourceModel) Update() (*ResourceModel, error) {
+func (r *ResourceModel) Update() error {
 	resource := &ResourceModel{}
-	model := db.DB.Model(resource).Updates(r)
-	if model.RowsAffected == 0 {
-		return nil, NoRecordExists
-	}
-	return model.Value.(*ResourceModel), model.Error
-}
-
-func (r *ResourceModel) Increment() (*ResourceModel, error) {
-	model := db.DB.Model(r).Update("download", gorm.Expr("download + 1"))
-	return model.Value.(*ResourceModel), model.Error
+	return db.DB.Model(resource).Updates(r).Error
 }
 
 func (r *ResourceModel) DeleteBy() error {
-	model := db.DB.Model(r).Delete(r)
-	return model.Error
+	return db.DB.Model(r).Delete(r).Error
 }

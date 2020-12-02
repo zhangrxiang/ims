@@ -59,8 +59,7 @@ func ResourceHistoryRollback(ctx iris.Context) {
 		return
 	}
 	rm.RHId = rhm2[1].ID
-	rm, err = rm.Update()
-	if err != nil {
+	if err = rm.Update(); err != nil {
 		response(ctx, false, "更新版本失败:"+err.Error(), nil)
 		return
 	}
@@ -127,18 +126,16 @@ func ResourceHistoryUpdate(ctx iris.Context) {
 	user := auth(ctx)
 	rhm.UserId = user.ID
 	rhm.CreatedAt = time.Now()
-	rhm, err = rhm.Update()
-	if err != nil {
+	if err = rhm.Update(); err != nil {
 		response(ctx, false, "更新当前资源版本失败:"+err.Error(), nil)
 		return
 	}
 
-	resourceModel := &models.ResourceModel{
+	rm = &models.ResourceModel{
 		ID:   resourceID,
 		RHId: rhm.ID,
 	}
-	_, err = resourceModel.Update()
-	if err != nil {
+	if err = rm.Update(); err != nil {
 		response(ctx, false, "更新资源失败:"+err.Error(), nil)
 		return
 	}
@@ -167,7 +164,7 @@ func ResourceHistoryLists(ctx iris.Context) {
 		return
 	}
 	user := models.UserModel{}
-	users, err := user.All()
+	users, err := user.Find()
 	if err != nil {
 		return
 	}

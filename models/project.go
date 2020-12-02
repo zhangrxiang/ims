@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -15,18 +15,8 @@ type ProjectModel struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (p *ProjectModel) Delete() (*ProjectModel, error) {
-	model := db.DB.Delete(p)
-	return model.Value.(*ProjectModel), model.Error
-}
-
-//根据ID删除
-func (p *ProjectModel) DeleteByIds(ids []int) (*ProjectModel, error) {
-	model := db.DB.Where(ids).Delete(p)
-	if model.RowsAffected == 0 {
-		return nil, nil
-	}
-	return model.Value.(*ProjectModel), model.Error
+func (p *ProjectModel) Delete() error {
+	return db.DB.Delete(p).Error
 }
 
 func (p *ProjectModel) FirstBy() (*ProjectModel, error) {
@@ -45,13 +35,10 @@ func (p *ProjectModel) FindBy() ([]ProjectModel, error) {
 	return projects, model.Error
 }
 
-func (p *ProjectModel) Insert() (*ProjectModel, error) {
-	model := db.DB.Create(p)
-	return model.Value.(*ProjectModel), model.Error
+func (p *ProjectModel) Insert() error {
+	return db.DB.Create(p).Error
 }
 
-func (p *ProjectModel) Update() (*ProjectModel, error) {
-	project := &ProjectModel{}
-	model := db.DB.Model(project).Updates(p)
-	return model.Value.(*ProjectModel), model.Error
+func (p *ProjectModel) Update() error {
+	return db.DB.Model(p).Updates(p).Error
 }

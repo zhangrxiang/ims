@@ -1,7 +1,8 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
+	"errors"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -22,68 +23,51 @@ type UserModel struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+var ErrUserNameExists = errors.New("用户名不能重名")
+
+func (u *UserModel) BeforeCreate(*gorm.DB) (err error) {
+	u2 := &UserModel{Username: u.Username}
+	if _, err := u2.First(); err == nil {
+		return ErrUserNameExists
+	}
+	return
+}
+
+func (u *UserModel) Insert() error {
+	return db.DB.Create(u).Error
+}
+
 func (u *UserModel) First() (*UserModel, error) {
 	var users UserModel
-	model := db.DB.Model(u).Where(u).First(&users)
-	return &users, model.Error
+	m := db.DB.Model(u).Where(u).First(&users)
+	return &users, m.Error
 }
 
 func (u *UserModel) Find() ([]UserModel, error) {
 	var users []UserModel
-	model := db.DB.Model(u).Where("Id = ?", u.ID).Order("id DESC").Find(&users)
+	model := db.DB.Model(u).Where(u).Order("id DESC").Find(&users)
 	return users, model.Error
 }
 
-func (u *UserModel) Login() (*UserModel, error) {
-	user := &UserModel{}
-	model := db.DB.Where("username = ? AND password = ?", u.Username, u.Password).Find(user)
-	return user, model.Error
+func (u *UserModel) Delete() error {
+	return db.DB.Model(u).Delete(u).Error
 }
 
-func (u *UserModel) ByUsername() (*UserModel, error) {
-	user := &UserModel{}
-	model := db.DB.Where("username = ?", u.Username).Find(user)
-	return user, model.Error
-}
-
-func (u *UserModel) All() ([]UserModel, error) {
-	var users []UserModel
-	model := db.DB.Order("id DESC").Find(&users)
-	return users, model.Error
-}
-
-func (u *UserModel) Insert() (*UserModel, error) {
-	_, err := u.ByUsername()
-	if err == gorm.ErrRecordNotFound {
-		model := db.DB.Create(u)
-		return model.Value.(*UserModel), model.Error
+func (u *UserModel) BeforeUpdate(*gorm.DB) (err error) {
+	u2 := &UserModel{Username: u.Username}
+	if u2, err = u2.First(); err != nil {
+		return nil
 	}
-	return nil, RecordExists
+	if u2.ID != u.ID {
+		return ErrUserNameExists
+	}
+	return
 }
 
-func (u *UserModel) DeleteBy() error {
-	model := db.DB.Model(u).Delete(u)
-	return model.Error
-}
-
-func (u *UserModel) Delete(ids []int) (*UserModel, error) {
-	model := db.DB.Where(ids).Delete(u)
-	if model.RowsAffected == 0 {
-		return nil, NoRecordExists
-	}
-	return model.Value.(*UserModel), model.Error
-}
-
-func (u *UserModel) Update() (*UserModel, error) {
-	userModel, err := u.ByUsername()
-	if err != gorm.ErrRecordNotFound && userModel != nil {
-		if userModel.ID != u.ID {
-			return nil, RecordExists
-		}
-	}
-	model := db.DB.Model(u).Updates(u)
-	if model.RowsAffected == 0 {
-		return nil, NoRecordExists
-	}
-	return model.Value.(*UserModel), model.Error
+func (u *UserModel) Update() error {
+	return db.DB.Model(u).
+		Updates(u).
+		UpdateColumn("phone", u.Phone).
+		UpdateColumn("mail", u.Mail).
+		Error
 }

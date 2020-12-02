@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -18,14 +18,12 @@ type ResourceHistoryModel struct {
 	CreatedAt  time.Time `json:"created_at"`
 }
 
-func (rh *ResourceHistoryModel) Increment() (*ResourceHistoryModel, error) {
-	model := db.DB.Model(rh).Update("download", gorm.Expr("download  + 1"))
-	return nil, model.Error
+func (rh *ResourceHistoryModel) Increment() error {
+	return db.DB.Model(rh).Update("download", gorm.Expr("download  + 1")).Error
 }
 
-func (rh *ResourceHistoryModel) Insert() (*ResourceHistoryModel, error) {
-	model := db.DB.Create(rh)
-	return model.Value.(*ResourceHistoryModel), model.Error
+func (rh *ResourceHistoryModel) Insert() error {
+	return db.DB.Create(rh).Error
 }
 
 //单数据查询
@@ -64,13 +62,9 @@ func (rh *ResourceHistoryModel) FindIDBy() ([]int, error) {
 }
 
 //更新
-func (rh *ResourceHistoryModel) Update() (*ResourceHistoryModel, error) {
+func (rh *ResourceHistoryModel) Update() error {
 	resource := &ResourceHistoryModel{}
-	model := db.DB.Model(resource).Updates(rh)
-	if model.RowsAffected == 0 {
-		return nil, NoRecordExists
-	}
-	return model.Value.(*ResourceHistoryModel), model.Error
+	return db.DB.Model(resource).Updates(rh).Error
 }
 
 func (rh *ResourceHistoryModel) DeleteBy(ids []int) error {

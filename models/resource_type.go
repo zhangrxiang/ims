@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -33,40 +33,31 @@ func (r *ResourceTypeModel) FindByResourceName() (*ResourceTypeModel, error) {
 }
 
 //根据ID删除
-func (r *ResourceTypeModel) DeleteByIds(ids []int) (*ResourceTypeModel, error) {
-
-	model := db.DB.Where(ids).Delete(r)
-	if model.RowsAffected == 0 {
-		return nil, NoRecordExists
-	}
-	return model.Value.(*ResourceTypeModel), model.Error
+func (r *ResourceTypeModel) DeleteByIds(ids []int) error {
+	return db.DB.Where(ids).Delete(r).Error
 
 }
 
 //更新
-func (r *ResourceTypeModel) Update() (*ResourceTypeModel, error) {
-
+func (r *ResourceTypeModel) Update() error {
 	typeModel, err := r.FindByResourceName()
-
 	if err != gorm.ErrRecordNotFound && typeModel != nil {
 		if typeModel.ID != r.ID {
-			return nil, RecordExists
+			return RecordExists
 		}
 	}
-
 	model := db.DB.Model(r).Updates(r)
 	if model.RowsAffected == 0 {
-		return nil, NoRecordExists
+		return NoRecordExists
 	}
-	return model.Value.(*ResourceTypeModel), model.Error
+	return model.Error
 }
 
 //添加
-func (r *ResourceTypeModel) Insert() (*ResourceTypeModel, error) {
+func (r *ResourceTypeModel) Insert() error {
 	_, err := r.FindByResourceName()
 	if err == gorm.ErrRecordNotFound {
-		model := db.DB.Create(r)
-		return model.Value.(*ResourceTypeModel), nil
+		return db.DB.Create(r).Error
 	}
-	return nil, RecordExists
+	return RecordExists
 }

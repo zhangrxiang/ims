@@ -22,14 +22,12 @@ func ProjectDelete(ctx iris.Context) {
 		return
 	}
 	phm := models.ProjectHistoryModel{}
-	_, err = phm.DeleteByProjectId(id)
-	if err != nil {
+	if err = phm.DeleteByProjectId(id); err != nil {
 		response(ctx, false, "删除当前项目历史所有版本失败:"+err.Error(), nil)
 		return
 	}
 	pm := &models.ProjectModel{ID: id}
-	_, err = pm.Delete()
-	if err != nil {
+	if err := pm.Delete(); err != nil {
 		response(ctx, false, "删除项目失败:"+err.Error(), nil)
 		return
 	}
@@ -83,17 +81,13 @@ func ProjectUpgrade(ctx iris.Context) {
 		response(ctx, false, "请输入版本号,选择对应资源", nil)
 		return
 	}
-	pm := &models.ProjectModel{
-		ID: projectId,
-	}
+	pm := &models.ProjectModel{ID: projectId}
 	pm, err = pm.FirstBy()
 	if err != nil {
 		response(ctx, false, "获取当前项目详情失败:"+err.Error(), nil)
 		return
 	}
-	phm := &models.ProjectHistoryModel{
-		ProjectId: projectId,
-	}
+	phm := &models.ProjectHistoryModel{ProjectId: projectId}
 	phm, err = phm.First()
 	if phm != nil && utils.VersionCompare(version, phm.Version) < 1 {
 		response(ctx, false, "当前版本必须高于最新版本:"+phm.Version, nil)
@@ -113,11 +107,11 @@ func ProjectUpgrade(ctx iris.Context) {
 		Path:      zipDir,
 		Hash:      utils.Md5Str(string(rune(projectId)) + version + logStr + RHIds),
 	}
-	model, err := phm.Insert()
-	if err != nil {
+	if err := phm.Insert(); err != nil {
 		response(ctx, false, "保存项目版本失败:"+err.Error(), nil)
 		return
 	}
+	phm, err = phm.First()
 	fZip, err := os.Create(zipDir)
 	if err != nil {
 		response(ctx, false, "创建zip文件失败"+err.Error(), nil)
@@ -126,7 +120,7 @@ func ProjectUpgrade(ctx iris.Context) {
 	w := zip.NewWriter(fZip)
 	resourceLog := ""
 	defer func() { _ = w.Close() }()
-	for _, id := range utils.StrToIntSlice(model.RHIds, ",") {
+	for _, id := range utils.StrToIntSlice(RHIds, ",") {
 		rhm := models.ResourceHistoryModel{
 			ID: id,
 		}
@@ -161,14 +155,13 @@ func ProjectUpgrade(ctx iris.Context) {
 	if err != nil {
 		utils.Error("向压缩包写入注释失败")
 	}
-	pm.PHId = model.ID
-	_, err = pm.Update()
-	if err != nil {
+	pm.PHId = phm.ID
+	if err := pm.Update(); err != nil {
 		response(ctx, false, "更新当前项目失败:"+err.Error(), nil)
 		return
 	}
 	log(ctx, fmt.Sprintf("添加项目版本[ %s ]", comment))
-	response(ctx, true, "保存项目版本成功", model)
+	response(ctx, true, "保存项目版本成功", nil)
 }
 
 //添加项目
@@ -189,13 +182,12 @@ func ProjectAdd(ctx iris.Context) {
 		Desc:   desc,
 		UserId: user.ID,
 	}
-	model, err := pm.Insert()
-	if err != nil {
+	if err := pm.Insert(); err != nil {
 		response(ctx, false, "保存项目失败:"+err.Error(), nil)
 		return
 	}
 	log(ctx, fmt.Sprintf("添加项目[ %s ],描述[ %s ]", pm.Name, pm.Desc))
-	response(ctx, true, "保存项目成功", model)
+	response(ctx, true, "保存项目成功", nil)
 }
 
 //项目详情
@@ -263,8 +255,7 @@ func ProjectUpdate(ctx iris.Context) {
 		Desc:   desc,
 		UserId: user.ID,
 	}
-	_, err = pm.Update()
-	if err != nil {
+	if err := pm.Update(); err != nil {
 		response(ctx, false, "更新项目失败:"+err.Error(), nil)
 		return
 	}
@@ -289,8 +280,7 @@ func ProjectDownload(ctx iris.Context) {
 		return
 	}
 	model.Download += 1
-	_, err = model.Update()
-	if err != nil {
+	if err = model.Update(); err != nil {
 		utils.Error("更新项目下载量失败:", err)
 	}
 	log(ctx, fmt.Sprintf("下载项目[ %s ],版本[ %s ]", phm.Path, phm.Log))
