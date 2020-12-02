@@ -26,7 +26,7 @@ func TestResourceFind(t *testing.T) {
 	//go func(alice []int) {
 	//	for _, id := range alice {
 	//		model := &ResourceModel{}
-	//		model.ID = id
+	//		model.Id = id
 	//		log.Println(id)
 	//		resourceModel, err := model.Find()
 	//		log.Println(resourceModel)
@@ -42,7 +42,7 @@ func TestResourceFind(t *testing.T) {
 	//	alice := utils.StrToIntSlice("1,2,3,4,5", ",")
 	//	for _, id := range alice {
 	//		model := &ResourceModel{}
-	//		model.ID = id
+	//		model.Id = id
 	//		log.Println("id",id)
 	//		resourceModel, err := model.Find()
 	//		log.Println(resourceModel)

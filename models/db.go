@@ -65,15 +65,15 @@ func (db *DB) Init() {
 				}
 			case *ResourceTypeModel:
 				for _, v := range []*ResourceTypeModel{{
-					ID:   1,
+					Id:   1,
 					Name: "震动",
 					Desc: "关于震动",
 				}, {
-					ID:   2,
+					Id:   2,
 					Name: "周界",
 					Desc: "关于周界",
 				}, {
-					ID:   3,
+					Id:   3,
 					Name: "测温",
 					Desc: "关于测温",
 				}} {

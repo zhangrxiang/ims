@@ -11,12 +11,10 @@ import (
 
 //添加资源分类
 func ResourceTypeAdd(ctx iris.Context) {
-
 	name := ctx.FormValue("name")
 	desc := ctx.FormValue("desc")
-
-	if name == "" {
-		response(ctx, false, "资源分类名不能为空", nil)
+	if name == "" || desc == "" {
+		response(ctx, false, "资源分类名和描述不能为空", nil)
 		return
 	}
 	rtm := &models.ResourceTypeModel{
@@ -56,7 +54,7 @@ func ResourceTypeDelete(ctx iris.Context) {
 			response(ctx, false, "资源分类ID非法:"+err.Error(), nil)
 			return
 		}
-		rt := &models.ResourceTypeModel{ID: i}
+		rt := &models.ResourceTypeModel{Id: i}
 		if rt, err := rt.First(); rt != nil && err == nil {
 			names += rt.Name
 		}
@@ -87,12 +85,11 @@ func ResourceTypeUpdate(ctx iris.Context) {
 	}
 	name := ctx.FormValue("name")
 	desc := ctx.FormValue("desc")
-	rt := &models.ResourceTypeModel{ID: id}
-	rt, err = rt.First()
-	if err != nil {
-		response(ctx, false, "更新资源分类失败:"+err.Error(), nil)
+	if name == "" || desc == "" {
+		response(ctx, false, "资源分类名和描述不能为空", nil)
 		return
 	}
+	rt := &models.ResourceTypeModel{Id: id}
 	oldName := rt.Name
 	oldDesc := rt.Desc
 	rt.Name = name
@@ -107,17 +104,14 @@ func ResourceTypeUpdate(ctx iris.Context) {
 
 //资源分类列表
 func ResourceTypeLists(ctx iris.Context) {
-
-	resourceTypeModel := &models.ResourceTypeModel{}
-	model, err := resourceTypeModel.All()
-
+	rtm := &models.ResourceTypeModel{}
+	list, err := rtm.Find()
 	if err != nil {
 		response(ctx, false, "获取资源分类列表失败:"+err.Error(), nil)
 		return
 	}
-
 	response(ctx, true, "", iris.Map{
-		"resource_types": model,
+		"resource_types": list,
 		"timestamp":      time.Now().Unix(),
 	})
 	return

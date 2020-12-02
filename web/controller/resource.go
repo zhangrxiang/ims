@@ -292,7 +292,7 @@ func ResourceLists(ctx iris.Context) {
 //资源列表
 func ResourceGroupLists(ctx iris.Context) {
 	typeModel := &models.ResourceTypeModel{}
-	allType, err := typeModel.All()
+	allType, err := typeModel.Find()
 	if err != nil {
 		response(ctx, false, "获取资源类型列表失败:"+err.Error(), nil)
 		return
@@ -311,7 +311,7 @@ func ResourceGroupLists(ctx iris.Context) {
 		}
 		var data []map[string]interface{}
 		for _, t := range allType {
-			resourceModel.Type = t.ID
+			resourceModel.Type = t.Id
 			resources, err := resourceModel.FindBy()
 			if err != nil {
 				response(ctx, false, "获取资源失败:"+err.Error(), nil)
@@ -410,7 +410,7 @@ func ResourceDownload(ctx iris.Context) {
 		return
 	}
 
-	log(ctx, fmt.Sprintf("下载[ %s ], ID[ %d ], 版本[ %s ], 日志[ %s ]", hm.File, hm.ID, hm.Version, hm.Log))
+	log(ctx, fmt.Sprintf("下载[ %s ], Id[ %d ], 版本[ %s ], 日志[ %s ]", hm.File, hm.ID, hm.Version, hm.Log))
 	err = ctx.SendFile(hm.Path, path.Base(hm.Path))
 	if err != nil {
 		response(ctx, false, "文件不存在"+err.Error(), nil)
