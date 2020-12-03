@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	"github.com/kataras/iris"
+	"github.com/kataras/iris/v12"
 	"io/ioutil"
 	"os"
 	"simple-ims/utils"

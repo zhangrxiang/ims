@@ -2,8 +2,7 @@ package middleware
 
 import (
 	"github.com/dgrijalva/jwt-go"
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/context"
+	"github.com/kataras/iris/v12"
 	"net/http"
 	"simple-ims/models"
 	"strings"
@@ -38,7 +37,7 @@ func NewAuth() *Authenticate {
 	}
 }
 
-func (a *Authenticate) Serve(ctx context.Context) {
+func (a *Authenticate) Serve(ctx iris.Context) {
 	currentRoute := strings.TrimPrefix(ctx.GetCurrentRoute().Path(), "/api/v1")
 	token := ctx.Values().Get("jwt").(*jwt.Token)
 	claims := token.Claims.(jwt.MapClaims)

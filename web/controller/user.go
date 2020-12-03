@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	"github.com/kataras/iris"
+	"github.com/kataras/iris/v12"
 	"regexp"
 	"simple-ims/models"
 	"simple-ims/utils"

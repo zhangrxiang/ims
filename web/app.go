@@ -1,8 +1,7 @@
 package web
 
 import (
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/context"
+	"github.com/kataras/iris/v12"
 	"log"
 	"simple-ims/models"
 	"simple-ims/utils"
@@ -37,16 +36,14 @@ func (web *Web) Init() {
 	web.app.Configure(iris.WithConfiguration(iris.Configuration{
 		Charset: "UTF-8",
 	}))
-
-	tmpl := iris.HTML("./www", ".html")
-	tmpl.Reload(true)
-	web.app.RegisterView(tmpl)
-	web.app.SPA(web.app.StaticHandler("./www", false, false))
-
+	web.app.HandleDir("/", iris.Dir("./www"), iris.DirOptions{
+		ShowList:  true,
+		IndexName: "index.html",
+		SPA:       true,
+	})
 	models.GetDBInstance()
-
 	//ping
-	web.app.Get("/ping", func(context context.Context) {
+	web.app.Get("/ping", func(context iris.Context) {
 		_, _ = context.WriteString("PONG")
 	})
 
@@ -60,8 +57,7 @@ func (web *Web) Init() {
 	//用户
 	web.app.Get(v1Api+"/user/login", controller.UserLogin)
 	user := web.app.Party(v1Api + "/user")
-	user.Use(middleware.JWT)
-	user.Use(middleware.Auth)
+	user.Use(middleware.JWT, middleware.Auth)
 	{
 		user.Get("/lists", controller.UserLists)
 		user.Post("/register", controller.UserRegister)
@@ -71,8 +67,8 @@ func (web *Web) Init() {
 
 	//资源分类
 	resourceType := web.app.Party(v1Api + "/resource-type")
-	resourceType.Use(middleware.JWT)
-	resourceType.Use(middleware.Auth)
+	resourceType.Use(middleware.JWT, middleware.Auth)
+	resourceType.Use()
 	{
 		resourceType.Post("/add", controller.ResourceTypeAdd)
 		resourceType.Get("/lists", controller.ResourceTypeLists)
@@ -82,8 +78,7 @@ func (web *Web) Init() {
 
 	//资源
 	resource := web.app.Party(v1Api + "/resource")
-	resource.Use(middleware.JWT)
-	resource.Use(middleware.Auth)
+	resource.Use(middleware.JWT, middleware.Auth)
 	{
 		resource.Post("/add", controller.ResourceAdd)
 		resource.Get("/lists", controller.ResourceLists)
@@ -96,8 +91,7 @@ func (web *Web) Init() {
 
 	//历史版本
 	resourceHistory := web.app.Party(v1Api + "/resource-history")
-	resourceHistory.Use(middleware.JWT)
-	resourceHistory.Use(middleware.Auth)
+	resourceHistory.Use(middleware.JWT, middleware.Auth)
 	{
 		resourceHistory.Get("/delete", controller.ResourceHistoryDelete)
 		resourceHistory.Get("/rollback", controller.ResourceHistoryRollback)
@@ -107,8 +101,7 @@ func (web *Web) Init() {
 
 	//项目
 	project := web.app.Party(v1Api + "/project")
-	project.Use(middleware.JWT)
-	project.Use(middleware.Auth)
+	project.Use(middleware.JWT, middleware.Auth)
 	{
 		project.Post("/add", controller.ProjectAdd)
 		project.Post("/update", controller.ProjectUpdate)

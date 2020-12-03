@@ -3,8 +3,7 @@ package middleware
 import (
 	jwt2 "github.com/dgrijalva/jwt-go"
 	"github.com/iris-contrib/middleware/jwt"
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/context"
+	"github.com/kataras/iris/v12"
 	"net/http"
 	"simple-ims/models"
 	"time"
@@ -17,20 +16,18 @@ var JWT = jwt.New(jwt.Config{
 		return mySecret, nil
 	},
 	Expiration: true,
-	Extractor: jwt.FromFirst(func(ctx context.Context) (string, error) {
+	Extractor: jwt.FromFirst(func(ctx iris.Context) (string, error) {
 		return jwt.FromAuthHeader(ctx)
-	}, jwt.FromParameter("token"), func(ctx context.Context) (string, error) {
+	}, jwt.FromParameter("token"), func(ctx iris.Context) (string, error) {
 		return ctx.PostValue("token"), nil
-	}, jwt.FromParameter("token"), func(ctx context.Context) (string, error) {
-		return ctx.URLParam("token"), nil
 	}),
 	SigningMethod: jwt.SigningMethodHS256,
-	ErrorHandler: func(context context.Context, err error) {
+	ErrorHandler: func(context iris.Context, err error) {
 		if err != nil {
 			context.StatusCode(http.StatusUnauthorized)
 			_, _ = context.JSON(iris.Map{
 				"success": false,
-				"err_msg": "token 验证失败:" + err.Error(),
+				"message": "token 验证失败:" + err.Error(),
 				"data":    []int{},
 			})
 			return
@@ -41,7 +38,7 @@ var JWT = jwt.New(jwt.Config{
 
 func GenerateToken(user *models.UserModel) (string, error) {
 	nowTime := time.Now()
-	expireTime := nowTime.Add(time.Duration(24) * time.Hour)
+	expireTime := nowTime.Add(time.Duration(240) * time.Hour)
 	token := jwt.NewTokenWithClaims(jwt.SigningMethodHS256, jwt2.MapClaims{
 		"userId":   user.ID,
 		"username": user.Username,

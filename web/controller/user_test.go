@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"log"
 	"net/url"
 	"simple-ims/utils"
 	"testing"
@@ -46,16 +45,4 @@ func TestUserUpdate(t *testing.T) {
 		"mail":     {"599490911@qq.com"},
 		"phone":    {"18800563600"},
 	}.Encode())
-}
-
-func TestCheckMail(t *testing.T) {
-	log.Println(checkMail("1@qq.com"))
-	log.Println(checkMail("1@@.com"))
-	log.Println(checkMail("1@.com"))
-}
-
-func TestCheckPhone(t *testing.T) {
-	log.Println(checkPhone("18800000000"))
-	log.Println(checkPhone("188000000"))
-	log.Println(checkPhone("18000000000"))
 }

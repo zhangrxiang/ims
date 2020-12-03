@@ -4,7 +4,7 @@ import (
 	"archive/zip"
 	"fmt"
 	"github.com/elliotchance/pie/pie"
-	"github.com/kataras/iris"
+	"github.com/kataras/iris/v12"
 	"io/ioutil"
 	"os"
 	"path"

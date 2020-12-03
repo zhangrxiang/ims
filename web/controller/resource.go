@@ -3,7 +3,7 @@ package controller
 import (
 	"fmt"
 	"github.com/elliotchance/pie/pie"
-	"github.com/kataras/iris"
+	"github.com/kataras/iris/v12"
 	"path"
 	"simple-ims/models"
 	"simple-ims/utils"
