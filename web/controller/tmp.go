@@ -130,8 +130,8 @@ func TmpDownload(ctx iris.Context) {
 			if err != nil {
 				response(ctx, false, "文件不存在"+err.Error(), nil)
 			}
+			return
 		}
-		return
 	}
 	response(ctx, false, "文件不存在", nil)
 }
