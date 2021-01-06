@@ -44,6 +44,9 @@ func (r *ResourceModel) Find() ([]ResourceModel, error) {
 	if r.Type != 0 {
 		m.Where("type = ?", r.Type)
 	}
+	if r.Name != "" {
+		m.Where("name = ?", r.Name)
+	}
 	m.Order("updated_at DESC").
 		Order("id DESC").
 		Find(&resources)

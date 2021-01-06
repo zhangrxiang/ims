@@ -54,6 +54,12 @@ func (web *Web) Init() {
 		tmp.Get("/download", controller.TmpDownload)
 	}
 
+	v := web.app.Party(v1Api + "/version")
+	{
+		v.Get("/{name}/lists", controller.VersionLists)
+		v.Get("/download/{id}", controller.VersionDownload)
+	}
+
 	//用户
 	web.app.Get(v1Api+"/user/login", controller.UserLogin)
 	user := web.app.Party(v1Api + "/user")
