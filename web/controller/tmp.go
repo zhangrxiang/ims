@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"simple-ims/utils"
+	"strings"
 	"time"
 )
 
@@ -64,7 +65,7 @@ func init() {
 	}()
 }
 
-var bigFile map[string]string
+//var bigFile map[string]string
 
 func TmpBigUpload(ctx iris.Context) {
 	/*name := ctx.PostValue("name")
@@ -126,7 +127,8 @@ func TmpDownload(ctx iris.Context) {
 	key := ctx.URLParam("key")
 	for _, file := range TmpFiles {
 		if file.Key == key {
-			err := ctx.SendFile(file.Path, file.Name)
+			name := strings.ReplaceAll(file.Name, ",", "-")
+			err := ctx.SendFile(file.Path, name)
 			if err != nil {
 				response(ctx, false, "文件不存在"+err.Error(), nil)
 			}

@@ -404,6 +404,7 @@ func ResourceDownload(ctx iris.Context) {
 	}
 
 	log(ctx, fmt.Sprintf("下载[ %s ], Id[ %d ], 版本[ %s ], 日志[ %s ]", hm.File, hm.Id, hm.Version, hm.Log))
+	hm.Path = strings.ReplaceAll(hm.Path, ",", "-")
 	err = ctx.SendFile(hm.Path, path.Base(hm.Path))
 	if err != nil {
 		response(ctx, false, "文件不存在"+err.Error(), nil)
