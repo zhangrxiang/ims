@@ -123,6 +123,16 @@ func (web *Web) Init() {
 	{
 		projectHistory.Get("/lists", controller.ProjectHistoryLists)
 	}
+
+	remote := web.app.Party(v1Api + "/remote")
+	remote.Use(middleware.JWT, middleware.Auth)
+	{
+		c := new(controller.Remote)
+		remote.Get("/exec", c.Exec)
+		remote.Get("/list", c.List)
+		remote.Get("/download", c.Download)
+	}
+
 	web.app.Get(v1Api+"/log/lists", middleware.JWT, middleware.Auth, controller.LogList)
 	web.app.Get(v1Api+"/info", middleware.JWT, middleware.Auth, controller.Info)
 

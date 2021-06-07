@@ -57,12 +57,12 @@ func Mkdir(p string) bool {
 
 func CopyFile(p string, src multipart.File) error {
 	dst, err := os.OpenFile(p, os.O_RDWR|os.O_CREATE, 0777)
-	defer func() {
-		_ = dst.Close()
-	}()
 	if err != nil {
 		return err
 	}
+	defer func() {
+		_ = dst.Close()
+	}()
 	_, _ = src.Seek(0, io.SeekStart)
 	_, err = io.Copy(dst, src)
 	if err != nil {
