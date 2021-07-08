@@ -55,7 +55,7 @@ func (r *Remote) Exec(ctx iris.Context) {
 	}
 	disposition := resp.Header.Get(context.ContentDispositionHeaderKey)
 
-	filename := strings.ReplaceAll(disposition, "attachment;filename=", "")
+	filename := strings.ReplaceAll(strings.TrimSpace(disposition), "attachment;filename=", "")
 	if filename == "" {
 		filename = filepath.Base(address.Path)
 	}

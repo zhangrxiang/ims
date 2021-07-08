@@ -1,7 +1,7 @@
 package models
 
 import (
-	soft "github.com/zing-dev/soft-version/src"
+	"github.com/zing-dev/soft-version/soft"
 	"time"
 )
 
@@ -10,7 +10,9 @@ type InfoModel struct {
 	Version   soft.Version `json:"version"`
 }
 
-var Info = InfoModel{
-	StartTime: time.Now().Format("2006-01-02 15:04:05"),
-	Version:   soft.NewSoft().Version[0],
+func GetVersion() InfoModel {
+	return InfoModel{
+		StartTime: time.Now().Format("2006-01-02 15:04:05"),
+		Version:   soft.GetCli().Soft.Version[0],
+	}
 }

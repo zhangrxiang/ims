@@ -1,27 +1,42 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 	"github.com/judwhite/go-svc/svc"
-	"github.com/zing-dev/soft-version/src"
+	"github.com/urfave/cli/v2"
+	"github.com/zing-dev/soft-version/soft"
 	"log"
 	"os"
 	"simple-ims/web"
 	"sync"
 )
 
-func main() {
-	if len(os.Args) > 1 {
-		soft.NewCommand().RunCallback(run).Parse()
-	} else {
-		run()
-	}
-}
+//go:embed version.json
+var src []byte
 
-func run() {
+func main() {
 	prg := &Program{}
-	if err := svc.Run(prg); err != nil {
+	app := soft.NewCli(&cli.App{
+		Name: "ims",
+		Action: func(context *cli.Context) error {
+			return svc.Run(prg)
+		},
+		Commands: []*cli.Command{
+			{
+				Name:  "run",
+				Usage: "run the ims server soft",
+				Action: func(c *cli.Context) error {
+					return svc.Run(prg)
+				},
+			},
+		},
+	}, src)
+
+	err := app.Run(os.Args)
+	if err != nil {
 		log.Fatal(err)
+		return
 	}
 }
 

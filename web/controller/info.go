@@ -6,5 +6,5 @@ import (
 )
 
 func Info(ctx iris.Context) {
-	response(ctx, true, "", models.Info)
+	response(ctx, true, "", models.GetVersion())
 }
